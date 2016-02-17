@@ -14,9 +14,9 @@ Tasks are configured using a YAML file, which by default is named `mo.yaml`. The
 
 ```yaml
 tasks:
-    hello:
-        description: Say hello.
-        command: echo hello    
+  hello:
+    description: Say hello.
+    command: echo hello    
 ```
 
 ## Usage
