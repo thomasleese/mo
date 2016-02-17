@@ -4,6 +4,11 @@ M-O
 Incredibly simple YAML-based tool for [STRIKEOUT:removing foreign
 contaminants] running tasks.
 
+.. figure:: https://github.com/thomasleese/mo/raw/master/assets/screenshot.png
+   :alt: Screenshot
+
+   Screenshot
+
 Installation
 ------------
 

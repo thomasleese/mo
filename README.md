@@ -2,6 +2,9 @@
 
 Incredibly simple YAML-based tool for ~~removing foreign contaminants~~ running tasks.
 
+![Screenshot](https://github.com/thomasleese/mo/raw/master/assets/screenshot.png)
+
+
 ## Installation
 
 ```sh
