@@ -1,6 +1,7 @@
 import subprocess
 
 import jinja2
+import jinja2.meta
 
 
 class Variable:
@@ -17,6 +18,10 @@ class Task:
     def __init__(self, name, configuration, variables):
         self.name = name
         self.description = configuration['description']
+
+        env = jinja2.Environment()
+        ast = env.parse(configuration['command'])
+        self.required_variables = jinja2.meta.find_undeclared_variables(ast)
 
         command_template = jinja2.Template(configuration['command'])
         self.commands = command_template.render(variables).split('\n')

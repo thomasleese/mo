@@ -38,4 +38,5 @@ def main():
     else:
         print()
         for task in runner.tasks.values():
-            print('', task.name, '-', task.description)
+            print('', task.name, '-', task.description,
+                  '({})'.format(','.join(task.required_variables)))
