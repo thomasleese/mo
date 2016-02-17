@@ -22,7 +22,7 @@ Running Tests
 Just to demonstrate how much ``M-O`` will improve your life:
 
 Before
-^^^^^^
+~~~~~~
 
 .. code:: sh
 
@@ -33,7 +33,7 @@ Before
     python setup.py test
 
 After
-^^^^^
+~~~~~
 
 .. code:: sh
 

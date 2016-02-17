@@ -14,7 +14,7 @@ pip3 install mo
 
 Just to demonstrate how much `M-O` will improve your life:
 
-#### Before
+### Before
 
 ```sh
 git clone https://github.com/thomasleese/mo.git
@@ -24,7 +24,7 @@ pip install -e .
 python setup.py test
 ```
 
-#### After
+### After
 
 ```sh
 git clone https://github.com/thomasleese/mo.git
