@@ -1,15 +1,19 @@
 tasks:
   venv:
+    description: Create an approriate Python virtual environment.
     command: |
       {{ pyvenv }} venv
       venv/bin/pip install -r requirements.txt
+      venv/bin/pip install -e .
 
   requirements:
+    description: Save the installed packages into a requirements.txt file.
     command: venv/bin/pip freeze > requirements.txt
     after:
       - venv
 
   test:
+    description: Run the tests for M-O.
     command: venv/bin/python setup.py test
     after:
       - venv
@@ -17,4 +21,4 @@ tasks:
 variables:
   pyvenv:
     description: Location of 'pyvenv' command.
-    default: /usr/bin/pyvenv
+    default: pyvenv
