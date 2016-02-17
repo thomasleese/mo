@@ -47,8 +47,7 @@ this repository defines a ``test`` task which does the commands above.
 Configuration
 -------------
 
-``M-O`` is configured by reading a YAML file, typically called
-``mo.yaml``.
+``M-O`` is configured using a YAML file, typically called ``mo.yaml``.
 
 Tasks
 ~~~~~
@@ -62,7 +61,7 @@ An example task might be:
         description: Say hello.
         command: echo hello    
 
-Tasks can depend on each other, like this:
+Tasks can also depend on each other, like this:
 
 .. code:: yaml
 
@@ -127,3 +126,20 @@ which can be used to find out more information about other tasks:
 .. code:: sh
 
     mo help hello
+
+I/O
+---
+
+One unique feature of ``M-O`` is that it supports a number of different
+input/output schemes, two at the moment.
+
+-  ``human`` is the default scheme and it displays colourful,
+   well-formatted output through standard out.
+-  ``json`` is an alternative scheme which sends JSON objects via
+   standard output containing all the information required to display a
+   suitable output to the user. The idea behind the ``json`` scheme is
+   that IDEs and other tools will be able to easily integrate ``M-O``
+   support into their software without having to understand ``mo.yaml``
+   files.
+
+To change the scheme ``M-O`` uses, you can use the ``--io`` flag.
