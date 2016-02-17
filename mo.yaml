@@ -22,12 +22,6 @@ tasks:
     after:
       - venv
 
-  release:
-    description: Make a new release of M-O.
-    command: echo TODO
-    after:
-      - readme
-
 variables:
   pyvenv:
     description: Location of 'pyvenv' command.
