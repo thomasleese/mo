@@ -1,10 +1,20 @@
 tasks:
   venv:
     command: |
-      pyvenv venv
-      pip install -r requirements.txt
+      {{ pyvenv }} venv
+      venv/bin/pip install -r requirements.txt
+
+  requirements:
+    command: venv/bin/pip freeze > requirements.txt
+    after:
+      - venv
 
   test:
     command: venv/bin/python setup.py test
     after:
       - venv
+
+variables:
+  pyvenv:
+    description: Location of 'pyvenv' command.
+    default: /usr/bin/pyvenv
