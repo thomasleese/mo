@@ -3,8 +3,8 @@ tasks:
     description: Create an approriate Python virtual environment.
     command: |
       ([ ! -f venv/bin/python ] && {{ pyvenv }} venv) || exit 0
-      venv/bin/pip install -r requirements.txt
-      venv/bin/pip install -e .
+      venv/bin/pip install --quiet -r requirements.txt
+      venv/bin/pip install --quiet -e .
 
   requirements:
     description: Save the installed packages into a requirements.txt file.
