@@ -1,9 +1,10 @@
 from argparse import ArgumentParser
+import sys
 
 import yaml
 
 from .io import MAPPINGS as IO_MAPPINGS
-from .runner import Runner
+from .runner import Runner, TaskError
 
 
 def parse_variables(args):
@@ -38,9 +39,16 @@ def main():
 
     runner = Runner(configuration, variables, io)
 
+    exit_code = 0
+
     if args.task is not None:
-        runner.run(args.task, extra_args)
+        try:
+            runner.run(args.task, extra_args)
+        except TaskError:
+            exit_code = 1
     else:
         runner.help()
 
     io.end()
+
+    sys.exit(exit_code)

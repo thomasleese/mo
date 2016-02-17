@@ -1,3 +1,4 @@
+from difflib import SequenceMatcher
 import select
 import subprocess
 
@@ -31,13 +32,11 @@ class Task:
 
         self.after = configuration.get('after', [])
 
-    def run(self, runner, args):
+    def run_pre(self, runner, args):
         for task in self.after:
             runner.run_task(task, args)
 
-        runner.io.output(Urgency.normal, Markup.stage, Format.text,
-                         'Running task: {}'.format(self.name))
-
+    def run(self, runner, args):
         for command in self.commands:
             runner.io.output(Urgency.normal, Markup.progress,
                              Format.text, 'Executing: {}'.format(command))
@@ -83,8 +82,20 @@ class Task:
                 runner.io.output(Urgency.error, Markup.plain,
                                  Format.text,
                                  'Process did not exit successfully.')
-                raise RuntimeError('Process exited with code: {}'
-                                   .format(process.returncode))
+                raise TaskError('Process exited with code: {}'
+                                .format(process.returncode))
+
+    def run_post(self, runner, args):
+        pass
+
+
+class TaskError(RuntimeError):
+    pass
+
+
+class NoSuchTaskError(KeyError):
+    def __init__(self, similarities):
+        self.similarities = similarities
 
 
 class HelpTask(Task):
@@ -92,6 +103,7 @@ class HelpTask(Task):
         self.name = 'help'
         self.description = 'Show help about a task.'
         self.required_variables = []
+        self.after = []
 
     def run(self, runner, args):
         for name in args:
@@ -143,10 +155,50 @@ class Runner:
             self.io.output(Urgency.normal, Markup.progress,
                            Format.markdown, task.description)
 
+    def find_task(self, name):
+        try:
+            return self.tasks[name]
+        except KeyError:
+            pass
+
+        similarities = []
+
+        for task_name, task in self.tasks.items():
+            ratio = SequenceMatcher(None, name, task_name).ratio()
+            if ratio >= 0.75:
+                similarities.append(task)
+
+        if len(similarities) == 1:
+            return similarities[0]
+        else:
+            raise NoSuchTaskError(similarities)
+
     def run_task(self, name, args):
         if name in self.tasks_run:
-            self.io.output(Urgency.warning, Markup.stage, Format.text,
-                           'Already run task: {}'.format(name))
+            self.io.output(Urgency.normal, Markup.stage, Format.text,
+                           'Running task: {}'.format(name))
+            self.io.output(Urgency.warning, Markup.plain, Format.text,
+                           'Already run.')
         else:
+            try:
+                task = self.find_task(name)
+            except NoSuchTaskError as e:
+                self.io.output(Urgency.normal, Markup.stage, Format.text,
+                               'Running task: {}'.format(name))
+                self.io.output(Urgency.error, Markup.plain, Format.text,
+                               'No such task exists.')
+                if e.similarities:
+                    names = ', '.join(task.name for task in e.similarities)
+                    self.io.output(Urgency.warning, Markup.plain, Format.text,
+                                   'Did you mean: {}'.format(names))
+                raise TaskError
+
+            task.run_pre(self, args)
             self.tasks_run.append(name)
-            self.tasks[name].run(self, args)
+
+            self.io.output(Urgency.normal, Markup.stage, Format.text,
+                           'Running task: {}'.format(task.name))
+
+            task.run(self, args)
+
+            task.run_post(self, args)

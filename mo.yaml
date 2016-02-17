@@ -16,7 +16,13 @@ tasks:
     description: Convert the Markdown README file into a reST one.
     command: pandoc README.md -o README.rst
 
-  test:
+  test1:
+    description: Run the tests for M-O.
+    command: venv/bin/python setup.py test
+    after:
+      - venv
+
+  test2:
     description: Run the tests for M-O.
     command: venv/bin/python setup.py test
     after:
