@@ -57,7 +57,7 @@ class Runner:
         self.tasks = {'help': HelpTask()}
         self.variables = {}
 
-        for name, variable in configuration['variables'].items():
+        for name, variable in configuration.get('variables', {}).items():
             try:
                 value = variables.pop(name)
             except KeyError:
