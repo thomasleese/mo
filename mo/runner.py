@@ -23,12 +23,21 @@ class Task:
         self.name = name
         self.description = configuration['description']
 
-        env = jinja2.Environment()
-        ast = env.parse(configuration['command'])
+        env = jinja2.Environment(undefined=jinja2.StrictUndefined)
+
+        try:
+            ast = env.parse(configuration['command'])
+        except jinja2.exceptions.TemplateSyntaxError as e:
+            raise ValueError(e)
+
         self.required_variables = jinja2.meta.find_undeclared_variables(ast)
 
-        command_template = jinja2.Template(configuration['command'])
-        self.commands = command_template.render(variables).split('\n')
+        command_template = env.from_string(configuration['command'])
+
+        try:
+            self.commands = command_template.render(variables).split('\n')
+        except jinja2.exceptions.UndefinedError as e:
+            raise ValueError(e)
 
         self.after = configuration.get('after', [])
 
@@ -135,7 +144,16 @@ class Runner:
             self.variables[name] = Variable(name, variable, value)
 
         for name, task in configuration['tasks'].items():
-            self.tasks[name] = Task(name, task, self.variables)
+            try:
+                task = Task(name, task, self.variables)
+            except ValueError as e:
+                self.io.output(Urgency.warning, Markup.plain, Format.text,
+                               "Error while loading task '{}': {}"
+                               .format(name, str(e)))
+                self.io.output(Urgency.normal, Markup.separator, Format.text,
+                               '')
+            else:
+                self.tasks[name] = task
 
         if variables:
             keys = ', '.join(list(variables.keys()))

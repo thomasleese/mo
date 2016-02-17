@@ -85,6 +85,9 @@ class Human(InputOutput):
     def __call__(self, direction, urgency, markup, format, content):
         lines = content.splitlines()
 
+        if markup == Markup.separator:
+            lines.append('')
+
         prefix = self.get_prefix(urgency, markup, format)
         suffix = self.get_suffix(urgency, markup, format)
 
