@@ -18,7 +18,9 @@ tasks:
 
   test:
     description: Run the tests for M-O.
-    command: venv/bin/python setup.py test
+    command: |
+      venv/bin/coverage run --source=mo setup.py test
+      venv/bin/coverage html
     after:
       - venv
 
