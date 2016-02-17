@@ -1,0 +1,10 @@
+tasks:
+  venv:
+    command: |
+      pyvenv venv
+      pip install -r requirements.txt
+
+  test:
+    command: venv/bin/python setup.py test
+    after:
+      - venv
