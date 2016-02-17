@@ -8,6 +8,13 @@ Incredibly simple YAML-based tool for ~~removing foreign contaminants~~ running 
 pip install mo
 ```
 
+## Running Tests
+
+```sh
+git clone https://github.com/thomasleese/mo.git
+python -m mo test
+```
+
 ## Configuration
 
 Tasks are configured using a YAML file, which by default is named ``mo.yaml``. The basic structure of the file looking like this:

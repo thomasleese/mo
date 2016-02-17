@@ -12,11 +12,21 @@ tasks:
     after:
       - venv
 
+  readme:
+    description: Convert the Markdown README file into a reST one.
+    command: pandoc README.md -o README.rst
+
   test:
     description: Run the tests for M-O.
     command: venv/bin/python setup.py test
     after:
       - venv
+
+  release:
+    description: Make a new release of M-O.
+    command: echo TODO
+    after:
+      - readme
 
 variables:
   pyvenv:

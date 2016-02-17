@@ -11,6 +11,14 @@ Installation
 
     pip install mo
 
+Running Tests
+-------------
+
+.. code:: sh
+
+    git clone https://github.com/thomasleese/mo.git
+    python -m mo test
+
 Configuration
 -------------
 
