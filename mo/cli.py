@@ -22,7 +22,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('-f', '--file', default='mo.yaml')
     parser.add_argument('-v', '--var', dest='variables', nargs='*')
-    parser.add_argument('tasks', metavar='task', nargs='+')
+    parser.add_argument('tasks', metavar='task', nargs='*')
     args = parser.parse_args()
 
     with open(args.file) as file:
@@ -32,5 +32,10 @@ def main():
 
     runner = Runner(configuration, variables)
 
-    for task in args.tasks:
-        runner.run_task(task)
+    if args.tasks is None:
+        for task in args.tasks:
+            runner.run_task(task)
+    else:
+        print()
+        for task in runner.tasks.values():
+            print('', task.name, '-', task.description)
