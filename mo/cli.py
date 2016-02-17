@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 
 import yaml
 
+from .io import MAPPINGS as IO_MAPPINGS
 from .runner import Runner
 
 
@@ -22,6 +23,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('-f', '--file', default='mo.yaml')
     parser.add_argument('-v', '--var', dest='variables', nargs='*')
+    parser.add_argument('-i', '--io', default='human')
     parser.add_argument('task', nargs='?')
     args, extra_args = parser.parse_known_args()
 
@@ -30,12 +32,15 @@ def main():
 
     variables = parse_variables(args.variables)
 
-    runner = Runner(configuration, variables)
+    io = IO_MAPPINGS[args.io]()
+
+    io.begin()
+
+    runner = Runner(configuration, variables, io)
 
     if args.task is not None:
-        runner.run_task(args.task, extra_args)
+        runner.run(args.task, extra_args)
     else:
-        print()
-        for task in runner.tasks.values():
-            print('', task.name, '-', task.description,
-                  '({})'.format(','.join(task.required_variables)))
+        runner.help()
+
+    io.end()

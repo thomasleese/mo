@@ -20,7 +20,8 @@ setup(
     },
     install_requires=[
         'PyYAML',
-        'Jinja2'
+        'Jinja2',
+        'colorama'
     ],
     test_suite='tests'
 )
