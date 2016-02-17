@@ -23,5 +23,16 @@ setup(
         'Jinja2',
         'colorama'
     ],
-    test_suite='tests'
+    test_suite='tests',
+    download_url='https://github.com/thomasleese/mo/releases',
+    keywords=['task', 'runner'],
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Topic :: Software Development :: Build Tools',
+        'Topic :: Utilities'
+    ],
 )
