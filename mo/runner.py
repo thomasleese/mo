@@ -35,6 +35,9 @@ class Task:
         for task in self.after:
             runner.run_task(task, args)
 
+        runner.io.output(Urgency.normal, Markup.stage, Format.text,
+                         'Running task: {}'.format(self.name))
+
         for command in self.commands:
             runner.io.output(Urgency.normal, Markup.progress,
                              Format.text, 'Executing: {}'.format(command))
@@ -141,7 +144,5 @@ class Runner:
             self.io.output(Urgency.warning, Markup.stage, Format.text,
                            'Already run task: {}'.format(name))
         else:
-            self.io.output(Urgency.normal, Markup.stage, Format.text,
-                           'Running task: {}'.format(name))
             self.tasks_run.append(name)
             self.tasks[name].run(self, args)
