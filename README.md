@@ -7,7 +7,7 @@ Incredibly simple YAML-based tool for *~~removing foreign contaminants~~* runnin
 ## Installation
 
 ```sh
-pip install mo
+pip3 install mo
 ```
 
 ## Running Tests
@@ -28,7 +28,7 @@ python setup.py test
 
 ```sh
 git clone https://github.com/thomasleese/mo.git
-python -m mo test
+python3 -m mo test
 ```
 
 The [`M-O` configuration file](https://github.com/thomasleese/mo/blob/master/mo.yaml#L19) for this repository defines a `test` task which does the commands above.
