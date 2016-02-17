@@ -98,7 +98,11 @@ class HelpTask(Task):
             task = runner.tasks[name]
 
             text = '# {}\n'.format(name)
+            text += '\n'
             text += task.description
+            text += '\n\n'
+            text += 'Required variables: {}' \
+                .format(', '.join(task.required_variables))
 
             runner.io.output(Urgency.normal, Markup.plain,
                              Format.markdown, text)

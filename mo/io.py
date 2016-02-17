@@ -83,16 +83,16 @@ class Human(InputOutput):
         return colorama.Style.RESET_ALL
 
     def __call__(self, direction, urgency, markup, format, content):
-        if direction == Direction.input:
-            func = input
-        elif direction == Direction.output:
-            func = print
+        lines = content.splitlines()
 
         prefix = self.get_prefix(urgency, markup, format)
         suffix = self.get_suffix(urgency, markup, format)
 
-        text = '{}{}{}'.format(prefix, content, suffix)
-        return func(text)
+        for line in lines:
+            print('{}{}{}'.format(prefix, line, suffix))
+
+        if direction == Direction.input:
+            return input('Response:')
 
 
 class Json(InputOutput):
