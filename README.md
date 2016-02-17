@@ -114,6 +114,6 @@ mo help hello
 One unique feature of `M-O` is that it supports a number of different input/output schemes, two at the moment.
 
 - `human` is the default scheme and it displays colourful, well-formatted output through standard out.
-- `json` is an alternative scheme which sends JSON objects via standard output containing all the information require to display a suitable output to the user. The idea behind the `json` scheme is that IDEs and other tools will be able to easily integrate `M-O` support into their software without having to understand `mo.yaml` files.
+- `json` is an alternative scheme which sends JSON objects via standard output containing all the information required to display a suitable output to the user. The idea behind the `json` scheme is that IDEs and other tools will be able to easily integrate `M-O` support into their software without having to understand `mo.yaml` files.
 
 To change the scheme `M-O` uses, you can use the `--io` flag.
