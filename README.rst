@@ -143,3 +143,18 @@ input/output schemes, two at the moment.
    files.
 
 To change the scheme ``M-O`` uses, you can use the ``--io`` flag.
+
+What's wrong with Grunt, Gulp, Make, [insert tool here]?
+--------------------------------------------------------
+
+Nothing really, and if your project is working fine with them, you
+should continue using them.
+
+I just wanted a task runner that makes it easy to discover tasks (unlike
+Make) and simple enough that you can just list the commands that need to
+be run (unlike Grunt and Gulp). I liked the `Scripts to Rule Them
+All <http://githubengineering.com/scripts-to-rule-them-all/>`__ idea
+from GitHub, but felt that there was a lot of boilerplate (multiple
+files, displaying output, hard to configure, etc) so instead I build a
+task runner that accepts a single file as input and is really easy to
+understand but also suitably powerful.

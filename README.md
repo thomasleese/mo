@@ -117,3 +117,9 @@ One unique feature of `M-O` is that it supports a number of different input/outp
 - `json` is an alternative scheme which sends JSON objects via standard output containing all the information required to display a suitable output to the user. The idea behind the `json` scheme is that IDEs and other tools will be able to easily integrate `M-O` support into their software without having to understand `mo.yaml` files.
 
 To change the scheme `M-O` uses, you can use the `--io` flag.
+
+## What's wrong with Grunt, Gulp, Make, [insert tool here]?
+
+Nothing really, and if your project is working fine with them, you should continue using them.
+
+I just wanted a task runner that makes it easy to discover tasks (unlike Make) and simple enough that you can just list the commands that need to be run (unlike Grunt and Gulp). I liked the [Scripts to Rule Them All](http://githubengineering.com/scripts-to-rule-them-all/) idea from GitHub, but felt that there was a lot of boilerplate (multiple files, displaying output, hard to configure, etc) so instead I build a task runner that accepts a single file as input and is really easy to understand but also suitably powerful.
