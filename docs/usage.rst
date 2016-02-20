@@ -36,9 +36,8 @@ Tasks can also depend on each other, like this:
 Variables
 ~~~~~~~~~
 
-Each task command can contain variables using the `Jinja2 template
-language <http://jinja.pocoo.org/docs/>`__. First you declare the
-variables you want available:
+Each task command can contain variables using standard Python
+``string.format``. First you declare the variables you want available:
 
 .. code:: yaml
 
@@ -54,7 +53,7 @@ Next you can use the variable in your tasks:
     tasks:
       greet:
         description: Say a greeting.
-        command: echo {{ greeting }}
+        command: echo {greeting}
 
 To change the greeting, you would invoke ``M-O`` like this:
 
