@@ -16,10 +16,6 @@ tasks:
     after:
       - venv
 
-  readme:
-    description: Convert the Markdown README file into a reST one.
-    command: pandoc README.md -o README.rst
-
   test:
     command: |
       venv/bin/coverage run --source=mo setup.py test
