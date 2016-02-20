@@ -8,11 +8,21 @@ import jinja2.meta
 from .io import Urgency, Markup, Format
 
 
+class UndefinedVariableError(ValueError):
+    pass
+
+
 class Variable:
-    def __init__(self, name, configuration, value=None):
+    def __init__(self, name, default=None, value=None):
         self.name = name
-        self.default = configuration['default']
-        self.value = value or self.default
+        self.default = default
+        self._value = value or self.default
+
+    @property
+    def value(self):
+        if self._value is None:
+            raise UndefinedVariableError(self.name)
+        return self._value
 
     def __str__(self):
         return self.value
@@ -37,7 +47,7 @@ class Task:
         try:
             self.commands = command_template.render(variables).split('\n')
         except jinja2.exceptions.UndefinedError as e:
-            raise ValueError(e)
+            raise UndefinedVariableError(e)
 
         self.after = configuration.get('after', [])
 
@@ -141,7 +151,8 @@ class Runner:
             except KeyError:
                 value = None
 
-            self.variables[name] = Variable(name, variable, value)
+            self.variables[name] = Variable(name, variable.get('default'),
+                                            value)
 
         for name, task in configuration['tasks'].items():
             try:
@@ -149,7 +160,7 @@ class Runner:
             except ValueError as e:
                 self.io.output(Urgency.warning, Markup.plain, Format.text,
                                "Error while loading task '{}': {}"
-                               .format(name, str(e)))
+                               .format(name, repr(e)))
                 self.io.output(Urgency.normal, Markup.separator, Format.text,
                                '')
             else:
