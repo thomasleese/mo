@@ -5,11 +5,6 @@ import sys
 import colorama
 
 
-class Direction(Enum):
-    input = 'in'
-    output = 'out'
-
-
 class Urgency(Enum):
     normal = 'normal'
     warning = 'warning'
@@ -36,11 +31,8 @@ class InputOutput:
     def end(self):
         pass
 
-    def input(self, urgency, markup, format, content):
-        self(Direction.input, urgency, markup, format, content)
-
     def output(self, urgency, markup, format, content):
-        self(Direction.output, urgency, markup, format, content)
+        pass
 
 
 class Human(InputOutput):
@@ -82,7 +74,7 @@ class Human(InputOutput):
     def get_suffix(self, urgency, markup, format):
         return colorama.Style.RESET_ALL
 
-    def __call__(self, direction, urgency, markup, format, content):
+    def output(self, urgency, markup, format, content):
         lines = content.splitlines()
 
         if markup == Markup.separator:
@@ -94,18 +86,11 @@ class Human(InputOutput):
         for line in lines:
             print('{}{}{}'.format(prefix, line, suffix))
 
-        if direction == Direction.input:
-            return input('Response:')
-
 
 class Json(InputOutput):
-    def __call__(self, direction, urgency, markup, format, content):
-        print(json.dumps({'direction': direction.value,
-                          'urgency': urgency.value, 'markup': markup.value,
+    def __call__(self, urgency, markup, format, content):
+        print(json.dumps({'urgency': urgency.value, 'markup': markup.value,
                           'format': format.value, 'content': content}))
-
-        if direction == Direction.input:
-            return sys.stdin.read()
 
 
 MAPPINGS = {
