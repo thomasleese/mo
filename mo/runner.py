@@ -2,7 +2,7 @@ import select
 import subprocess
 
 from .io import Urgency, Markup, Format
-from .project import NoSuchTaskError
+from .project import NoSuchTaskError, HelpStep, CommandStep
 
 
 class UndefinedVariableError(ValueError):
@@ -34,7 +34,9 @@ class Runner:
     def find_task(self, name):
         return self.project.find_task(name)
 
-    def resolve_variables(self, variables):
+    def resolve_variables(self, task):
+        variables = {**task.variables, **self.project.variables}
+
         values = {}
 
         for variable in variables.values():
@@ -45,65 +47,60 @@ class Runner:
 
         return values
 
-    def actually_run_task(self, task):
-        variables = {**task.variables, **self.project.variables}
+    def run_command_step(self, task, step):
+        variables = self.resolve_variables(task)
+        command = step.command.format(**variables)
 
-        variable_values = self.resolve_variables(variables)
+        self.io.output(Urgency.normal, Markup.progress,
+                         Format.text, 'Executing: {}'.format(command))
 
-        commands = task.command.strip().format(**variable_values).split('\n')
+        process = subprocess.Popen(command, shell=True,
+                                   universal_newlines=True, bufsize=1,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
 
-        for command in commands:
-            self.io.output(Urgency.normal, Markup.progress,
-                             Format.text, 'Executing: {}'.format(command))
+        while True:
+            reads = [process.stdout.fileno(), process.stderr.fileno()]
+            ret = select.select(reads, [], [])
 
-            process = subprocess.Popen(command, shell=True,
-                                       universal_newlines=True, bufsize=1,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
+            for fd in ret[0]:
+                if fd == process.stdout.fileno():
+                    line = process.stdout.readline().strip()
+                    if line:
+                        self.io.output(Urgency.normal,
+                                         Markup.plain,
+                                         Format.unknown, line)
+                if fd == process.stderr.fileno():
+                    line = process.stderr.readline().strip()
+                    if line:
+                        self.io.output(Urgency.error, Markup.plain,
+                                         Format.unknown, line)
 
-            while True:
-                reads = [process.stdout.fileno(), process.stderr.fileno()]
-                ret = select.select(reads, [], [])
+            if process.poll() != None:
+                break
 
-                for fd in ret[0]:
-                    if fd == process.stdout.fileno():
-                        line = process.stdout.readline().strip()
-                        if line:
-                            self.io.output(Urgency.normal,
-                                             Markup.plain,
-                                             Format.unknown, line)
-                    if fd == process.stderr.fileno():
-                        line = process.stderr.readline().strip()
-                        if line:
-                            self.io.output(Urgency.error, Markup.plain,
-                                             Format.unknown, line)
+        for line in process.stdout.readlines():
+            line = line.strip()
+            if line:
+                self.io.output(Urgency.normal, Markup.plain,
+                                 Format.unknown, line)
 
-                if process.poll() != None:
-                    break
-
-            for line in process.stdout.readlines():
-                line = line.strip()
-                if line:
-                    self.io.output(Urgency.normal, Markup.plain,
-                                     Format.unknown, line)
-
-            for line in process.stderr.readlines():
-                line = line.strip()
-                if line:
-                    self.io.output(Urgency.error, Markup.plain,
-                                     Format.unknown, line)
-
-            if process.returncode != 0:
+        for line in process.stderr.readlines():
+            line = line.strip()
+            if line:
                 self.io.output(Urgency.error, Markup.plain,
-                                 Format.text,
-                                 'Process did not exit successfully.')
-                raise TaskError('Process exited with code: {}'
-                                .format(process.returncode))
+                                 Format.unknown, line)
 
-    def run_help_task(self, task):
-        variable_values = self.resolve_variables(task.variables)
+        if process.returncode != 0:
+            self.io.output(Urgency.error, Markup.plain,
+                             Format.text,
+                             'Process did not exit successfully.')
+            raise TaskError('Process exited with code: {}'
+                            .format(process.returncode))
 
-        task = self.project.find_task(variable_values['task'])
+    def run_help_step(self, task, step):
+        variables = self.resolve_variables(task)
+        task = self.project.find_task(variables['task'])
 
         text = '# {}\n'.format(task.name)
         text += '\n'
@@ -134,7 +131,7 @@ class Runner:
                                    'Did you mean: {}'.format(names))
                 raise TaskError
 
-            for name in task.after:
+            for name in task.dependencies:
                 self.run_task(name)
 
             self.tasks_run.append(name)
@@ -142,7 +139,8 @@ class Runner:
             self.io.output(Urgency.normal, Markup.stage, Format.text,
                            'Running task: {}'.format(task.name))
 
-            if task.name == 'help':
-                self.run_help_task(task)
-            else:
-                self.actually_run_task(task)
+            for step in task.steps:
+                if isinstance(step, HelpStep):
+                    self.run_help_step(task, step)
+                elif isinstance(step, CommandStep):
+                    self.run_command_step(task, step)

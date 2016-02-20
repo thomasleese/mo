@@ -16,7 +16,7 @@ An example task might be:
     tasks:
       hello:
         description: Say hello.
-        command: echo hello
+        steps: echo hello
 
 Tasks can also depend on each other, like this:
 
@@ -25,11 +25,11 @@ Tasks can also depend on each other, like this:
     tasks:
       hello:
         description: Say hello.
-        command: echo hello
+        steps: echo hello
 
       bye:
         description: Say bye.
-        command: echo bye
+        steps: echo bye
         after:
           - hello
 
@@ -53,7 +53,7 @@ Next you can use the variable in your tasks:
     tasks:
       greet:
         description: Say a greeting.
-        command: echo {greeting}
+        steps: echo {greeting}
 
 To change the greeting, you would invoke ``M-O`` like this:
 
@@ -115,7 +115,6 @@ files, displaying output, hard to configure, etc) so instead I build a
 task runner that accepts a single file as input and is really easy to
 understand but also suitably powerful.
 
-
 Tasks
 -----
 
@@ -160,6 +159,11 @@ Based loosely on the idea of `Scripts to Rule Them All`_, M-O defines a standard
     Generate the documentation for this software.
 
 .. _`Scripts to Rule Them All`: https://github.com/github/scripts-to-rule-them-all
+
+Steps
+-----
+
+A step is a single thing that a task might do.
 
 Variables
 ---------

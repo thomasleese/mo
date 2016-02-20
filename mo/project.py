@@ -1,6 +1,6 @@
 """Utilities for working with projects."""
 
-from collections import namedtuple, UserDict
+from collections import namedtuple, UserDict, UserList
 from difflib import SequenceMatcher
 
 
@@ -22,14 +22,22 @@ class InvalidTaskError(InvalidProjectError):
         super().__init__('{} {}'.format(name, message))
 
 
+class InvalidStepError(InvalidProjectError):
+    """A step is invalid."""
+    pass
+
+
 class NoSuchTaskError(KeyError):
     def __init__(self, similarities):
         self.similarities = similarities
 
 
 Variable = namedtuple('Variable', ['name', 'description', 'default'])
-Task = namedtuple('Task',
-                  ['name', 'description', 'variables', 'command', 'after'])
+Task = namedtuple('Task', ['name', 'description', 'variables', 'steps',
+                  'dependencies'])
+
+HelpStep = namedtuple('HelpStep', [])
+CommandStep = namedtuple('CommandStep', ['command'])
 
 
 class VariableCollection(UserDict):
@@ -63,6 +71,57 @@ class VariableCollection(UserDict):
             raise InvalidVariableError(name, 'missing a description.')
 
         return Variable(name, description, default)
+
+    def __str__(self):
+        return ', '.join(self.keys())
+
+
+class StepCollection(UserList):
+    """
+    A collection of steps.
+
+    Parameters
+    ----------
+    config : dict
+        The configuration for the step collection, generally this comes from a
+        section of the task configuration.
+    """
+
+    def __init__(self, config=None):
+        super().__init__()
+
+        if config is not None:
+            self._load_from_config(config)
+
+    def _load_from_config(self, config):
+        if isinstance(config, str):
+            self.append(CommandStep(config))
+        elif isinstance(config, list):
+            for conf in config:
+                self._load_from_config(conf)
+        elif isinstance(config, dict):
+            self.append(self._load_step_from_config(config))
+        else:
+            raise TypeError('config should be a str, list or dict.')
+
+    @staticmethod
+    def _load_step_from_config(config):
+        try:
+            type = config['type']
+        except KeyError:
+            raise InvalidStepError('Missing a type.')
+
+        if type == 'help':
+            return HelpStep()
+        elif type == 'command':
+            try:
+                command = config['command']
+            except KeyError:
+                raise InvalidStepError('Missing a command.')
+
+            return CommandStep(command)
+        else:
+            raise InvalidStepError('Unknown type: {}'.format(type))
 
     def __str__(self):
         return ', '.join(self.keys())
@@ -120,13 +179,14 @@ class TaskCollection(UserDict):
             raise InvalidTaskError(name, msg)
 
         try:
-            command = config['command']
-        except KeyError:
-            raise InvalidTaskError(name, 'missing a command.')
+            steps = StepCollection(config.get('steps'))
+        except InvalidStepError as e:
+            msg = 'has invalid steps: {}'.format(e)
+            raise InvalidTaskError(name, msg)
 
-        after = config.get('after', [])
+        dependencies = config.get('after', [])
 
-        return Task(name, description, variables, command, after)
+        return Task(name, description, variables, steps, dependencies)
 
     def __str__(self):
         return ', '.join(self.keys())
@@ -201,7 +261,10 @@ class Project:
         variables['topic'] = Variable('task', 'Which task to get help about.',
                                       None)
 
-        return Task('help', 'Get help about a task.', variables, None, [])
+        steps = StepCollection()
+        steps.append(HelpStep())
+
+        return Task('help', 'Get help about a task.', variables, steps, [])
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.tasks)
