@@ -28,6 +28,36 @@ class Variable:
         return self.value
 
 
+def load_variables(configuration, values):
+    """
+    Load variables from a dictionary-based configuration.
+
+    Parameters
+    ----------
+    configuration : dict
+        The configuration to load the variables from.
+    values : dict
+        Values to replace the default variable value with.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping variable names with variables.
+    """
+
+    variables = {}
+
+    for name, conf in configuration.items():
+        try:
+            value = values.pop(name)
+        except KeyError:
+            value = None
+
+        variables[name] = Variable(name, conf.get('default'), value)
+
+    return variables
+
+
 class Task:
     default_descriptions = {
         'bootstrap': 'Resolve all dependencies that an application requires to run.',
@@ -43,7 +73,7 @@ class Task:
         'docs': 'Generate the documentation.'
     }
 
-    def __init__(self, name, configuration, variables):
+    def __init__(self, name, configuration, global_variables, given_variables):
         self.name = name
 
         self.description = configuration.get('description')
@@ -63,6 +93,11 @@ class Task:
         self.required_variables = jinja2.meta.find_undeclared_variables(ast)
 
         command_template = env.from_string(configuration['command'])
+
+        self.variables = load_variables(configuration.get('variables', {}),
+                                        given_variables)
+
+        variables = {**self.variables, **global_variables}
 
         try:
             self.commands = command_template.render(variables).split('\n')
@@ -162,21 +197,13 @@ class HelpTask(Task):
 class Runner:
     def __init__(self, configuration, variables, io):
         self.tasks = {'help': HelpTask()}
-        self.variables = {}
+        self.variables = load_variables(configuration.get('variables', {}),
+                                        variables)
         self.io = io
-
-        for name, variable in configuration.get('variables', {}).items():
-            try:
-                value = variables.pop(name)
-            except KeyError:
-                value = None
-
-            self.variables[name] = Variable(name, variable.get('default'),
-                                            value)
 
         for name, task in configuration['tasks'].items():
             try:
-                task = Task(name, task, self.variables)
+                task = Task(name, task, self.variables, variables)
             except ValueError as e:
                 self.io.output(Urgency.warning, Markup.plain, Format.text,
                                "Error while loading task '{}': {}"
