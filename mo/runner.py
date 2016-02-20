@@ -87,17 +87,15 @@ class Task:
         except jinja2.exceptions.TemplateSyntaxError as e:
             raise ValueError(e)
 
-        self.required_variables = jinja2.meta.find_undeclared_variables(ast)
-
         command_template = env.from_string(configuration['command'])
 
-        self.variables = load_variables(configuration.get('variables', {}),
-                                        given_variables)
+        local_variables = load_variables(configuration.get('variables', {}),
+                                         given_variables)
 
-        variables = {**self.variables, **global_variables}
+        self.variables = {**local_variables, **global_variables}
 
         try:
-            self.commands = command_template.render(variables).split('\n')
+            self.commands = command_template.render(self.variables).split('\n')
         except jinja2.exceptions.UndefinedError as e:
             raise UndefinedVariableError(e)
 
@@ -173,10 +171,13 @@ class HelpTask(Task):
     def __init__(self, given_variables):
         self.name = 'help'
         self.description = 'Show help about a task.'
-        self.required_variables = ['topic']
         self.after = []
 
-        self.topic = Variable('topic', value=given_variables.get('topic'))
+        self.variables = {
+            'topic': Variable('topic', value=given_variables.get('topic'))
+        }
+
+        self.topic = self.variables['topic']
 
     def run(self, runner):
         task = runner.tasks[self.topic.value]
@@ -185,8 +186,8 @@ class HelpTask(Task):
         text += '\n'
         text += task.description
         text += '\n\n'
-        text += 'Required variables: {}' \
-            .format(', '.join(task.required_variables))
+        text += 'Variables: {}' \
+            .format(', '.join(task.variables))
 
         runner.io.output(Urgency.normal, Markup.plain, Format.markdown, text)
 
