@@ -38,4 +38,7 @@ Based loosely on the idea of `Scripts to Rule Them All`_, M-O defines a standard
 ``release``
     Make a new release of the software.
 
+``docs``
+    Generate the documentation for this software.
+
 .. _`Scripts to Rule Them All`: https://github.com/github/scripts-to-rule-them-all

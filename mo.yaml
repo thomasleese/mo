@@ -17,7 +17,6 @@ tasks:
     command: pandoc README.md -o README.rst
 
   test:
-    description: Run the tests for M-O.
     command: |
       venv/bin/coverage run --source=mo setup.py test
       venv/bin/coverage html
@@ -25,7 +24,6 @@ tasks:
       - venv
 
   docs:
-    description: Generate the docs for M-O.
     command: |
       venv/bin/python setup.py build_sphinx
     after:

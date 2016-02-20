@@ -29,9 +29,29 @@ class Variable:
 
 
 class Task:
+    default_descriptions = {
+        'bootstrap': 'Resolve all dependencies that an application requires to run.',
+        'test': 'Run the tests.',
+        'ci': 'Run the tests in an environment suitable for continous integration.',
+        'console': 'Launch a console for the application.',
+        'server': 'Launch the application server locally.',
+        'setup': 'Setup the application for the first time after cloning.',
+        'update': 'Update the application to run for its current checkout.',
+        'deploy': 'Deploy the application to production.',
+        'lint': 'Check the application for linting errors, this task is likely to be called by the test task.',
+        'release': 'Make a new release of the software.',
+        'docs': 'Generate the documentation.'
+    }
+
     def __init__(self, name, configuration, variables):
         self.name = name
-        self.description = configuration['description']
+
+        self.description = configuration.get('description')
+        if self.description is None:
+            try:
+                self.description = self.default_descriptions[name]
+            except KeyError:
+                raise ValueError('Task must have a description.')
 
         env = jinja2.Environment(undefined=jinja2.StrictUndefined)
 
