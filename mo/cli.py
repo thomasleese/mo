@@ -1,9 +1,11 @@
 from argparse import ArgumentParser
+from pathlib import Path
 import sys
 
 import yaml
 
 from .io import MAPPINGS as IO_MAPPINGS
+from .project import Project
 from .runner import Runner, TaskError
 
 
@@ -31,13 +33,15 @@ def main():
     with open(args.file) as file:
         configuration = yaml.load(file.read())
 
+    project = Project(configuration, Path(args.file).resolve().parent)
+
     variables = parse_variables(args.variables)
 
     io = IO_MAPPINGS[args.io]()
 
     io.begin()
 
-    runner = Runner(configuration, variables, io)
+    runner = Runner(project, variables, io)
 
     exit_code = 0
 

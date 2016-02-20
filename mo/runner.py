@@ -1,100 +1,59 @@
-from difflib import SequenceMatcher
 import select
 import subprocess
 
 from .io import Urgency, Markup, Format
+from .project import NoSuchTaskError
 
 
 class UndefinedVariableError(ValueError):
     pass
 
 
-class Variable:
-    def __init__(self, name, default=None, value=None):
-        self.name = name
-        self.default = default
-        self._value = value or self.default
-
-    @property
-    def value(self):
-        if self._value is None:
-            raise UndefinedVariableError(self.name)
-        return self._value
-
-    def __str__(self):
-        return self.value
+class TaskError(RuntimeError):
+    pass
 
 
-def load_variables(configuration, values):
-    """
-    Load variables from a dictionary-based configuration.
+class Runner:
+    def __init__(self, project, variables, io):
+        self.project = project
+        self.variables = variables
+        self.io = io
 
-    Parameters
-    ----------
-    configuration : dict
-        The configuration to load the variables from.
-    values : dict
-        Values to replace the default variable value with.
+        self.tasks_run = []
 
-    Returns
-    -------
-    dict
-        A dictionary mapping variable names with variables.
-    """
+    def run(self, name):
+        self.run_task(name)
 
-    variables = {}
+    def help(self):
+        for task in self.project.tasks.values():
+            self.io.output(Urgency.normal, Markup.stage, Format.text,
+                           task.name)
+            self.io.output(Urgency.normal, Markup.progress,
+                           Format.markdown, task.description)
 
-    for name, conf in configuration.items():
-        default = conf.get('default')
-        value = values.get(name)
-        variables[name] = Variable(name, default, value)
+    def find_task(self, name):
+        return self.project.find_task(name)
 
-    return variables
+    def resolve_variables(self, variables):
+        values = {}
 
+        for variable in variables.values():
+            value = self.variables.get(variable.name) or variable.default
+            if value is None:
+                raise UndefinedVariableError(variable.name)
+            values[variable.name] = value
 
-class Task:
-    default_descriptions = {
-        'bootstrap': 'Resolve all dependencies that an application requires to run.',
-        'test': 'Run the tests.',
-        'ci': 'Run the tests in an environment suitable for continous integration.',
-        'console': 'Launch a console for the application.',
-        'server': 'Launch the application server locally.',
-        'setup': 'Setup the application for the first time after cloning.',
-        'update': 'Update the application to run for its current checkout.',
-        'deploy': 'Deploy the application to production.',
-        'lint': 'Check the application for linting errors, this task is likely to be called by the test task.',
-        'release': 'Make a new release of the software.',
-        'docs': 'Generate the documentation.'
-    }
+        return values
 
-    def __init__(self, name, configuration, global_variables, given_variables):
-        self.name = name
+    def actually_run_task(self, task):
+        variables = {**task.variables, **self.project.variables}
 
-        self.description = configuration.get('description')
-        if self.description is None:
-            try:
-                self.description = self.default_descriptions[name]
-            except KeyError:
-                raise ValueError('Task must have a description.')
+        variable_values = self.resolve_variables(variables)
 
-        command_template = configuration['command']
+        commands = task.command.strip().format(**variable_values).split('\n')
 
-        local_variables = load_variables(configuration.get('variables', {}),
-                                         given_variables)
-
-        self.variables = {**local_variables, **global_variables}
-
-        self.commands = command_template.format(**self.variables).split('\n')
-
-        self.after = configuration.get('after', [])
-
-    def run_pre(self, runner):
-        for task in self.after:
-            runner.run_task(task)
-
-    def run(self, runner):
-        for command in self.commands:
-            runner.io.output(Urgency.normal, Markup.progress,
+        for command in commands:
+            self.io.output(Urgency.normal, Markup.progress,
                              Format.text, 'Executing: {}'.format(command))
 
             process = subprocess.Popen(command, shell=True,
@@ -110,13 +69,13 @@ class Task:
                     if fd == process.stdout.fileno():
                         line = process.stdout.readline().strip()
                         if line:
-                            runner.io.output(Urgency.normal,
+                            self.io.output(Urgency.normal,
                                              Markup.plain,
                                              Format.unknown, line)
                     if fd == process.stderr.fileno():
                         line = process.stderr.readline().strip()
                         if line:
-                            runner.io.output(Urgency.error, Markup.plain,
+                            self.io.output(Urgency.error, Markup.plain,
                                              Format.unknown, line)
 
                 if process.poll() != None:
@@ -125,49 +84,26 @@ class Task:
             for line in process.stdout.readlines():
                 line = line.strip()
                 if line:
-                    runner.io.output(Urgency.normal, Markup.plain,
+                    self.io.output(Urgency.normal, Markup.plain,
                                      Format.unknown, line)
 
             for line in process.stderr.readlines():
                 line = line.strip()
                 if line:
-                    runner.io.output(Urgency.error, Markup.plain,
+                    self.io.output(Urgency.error, Markup.plain,
                                      Format.unknown, line)
 
             if process.returncode != 0:
-                runner.io.output(Urgency.error, Markup.plain,
+                self.io.output(Urgency.error, Markup.plain,
                                  Format.text,
                                  'Process did not exit successfully.')
                 raise TaskError('Process exited with code: {}'
                                 .format(process.returncode))
 
-    def run_post(self, runner):
-        pass
+    def run_help_task(self, task):
+        variable_values = self.resolve_variables(task.variables)
 
-
-class TaskError(RuntimeError):
-    pass
-
-
-class NoSuchTaskError(KeyError):
-    def __init__(self, similarities):
-        self.similarities = similarities
-
-
-class HelpTask(Task):
-    def __init__(self, given_variables):
-        self.name = 'help'
-        self.description = 'Show help about a task.'
-        self.after = []
-
-        self.variables = {
-            'topic': Variable('topic', value=given_variables.get('topic'))
-        }
-
-        self.topic = self.variables['topic']
-
-    def run(self, runner):
-        task = runner.tasks[self.topic.value]
+        task = self.project.find_task(variable_values['task'])
 
         text = '# {}\n'.format(task.name)
         text += '\n'
@@ -176,57 +112,7 @@ class HelpTask(Task):
         text += 'Variables: {}' \
             .format(', '.join(task.variables))
 
-        runner.io.output(Urgency.normal, Markup.plain, Format.markdown, text)
-
-
-class Runner:
-    def __init__(self, configuration, variables, io):
-        self.tasks = {'help': HelpTask(variables)}
-        self.variables = load_variables(configuration.get('variables', {}),
-                                        variables)
-        self.io = io
-
-        for name, task in configuration['tasks'].items():
-            try:
-                task = Task(name, task, self.variables, variables)
-            except ValueError as e:
-                self.io.output(Urgency.warning, Markup.plain, Format.text,
-                               "Error while loading task '{}': {}"
-                               .format(name, repr(e)))
-                self.io.output(Urgency.normal, Markup.separator, Format.text,
-                               '')
-            else:
-                self.tasks[name] = task
-
-        self.tasks_run = []
-
-    def run(self, name):
-        self.run_task(name)
-
-    def help(self):
-        for task in self.tasks.values():
-            self.io.output(Urgency.normal, Markup.stage, Format.text,
-                           task.name)
-            self.io.output(Urgency.normal, Markup.progress,
-                           Format.markdown, task.description)
-
-    def find_task(self, name):
-        try:
-            return self.tasks[name]
-        except KeyError:
-            pass
-
-        similarities = []
-
-        for task_name, task in self.tasks.items():
-            ratio = SequenceMatcher(None, name, task_name).ratio()
-            if ratio >= 0.75:
-                similarities.append(task)
-
-        if len(similarities) == 1:
-            return similarities[0]
-        else:
-            raise NoSuchTaskError(similarities)
+        self.io.output(Urgency.normal, Markup.plain, Format.markdown, text)
 
     def run_task(self, name):
         if name in self.tasks_run:
@@ -248,12 +134,15 @@ class Runner:
                                    'Did you mean: {}'.format(names))
                 raise TaskError
 
-            task.run_pre(self)
+            for name in task.after:
+                self.run_task(name)
+
             self.tasks_run.append(name)
 
             self.io.output(Urgency.normal, Markup.stage, Format.text,
                            'Running task: {}'.format(task.name))
 
-            task.run(self)
-
-            task.run_post(self)
+            if task.name == 'help':
+                self.run_help_task(task)
+            else:
+                self.actually_run_task(task)

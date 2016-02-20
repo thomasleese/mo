@@ -22,6 +22,14 @@ I/O
     :undoc-members:
     :show-inheritance:
 
+Projects
+--------
+
+.. automodule:: mo.project
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Runner
 ------
 
