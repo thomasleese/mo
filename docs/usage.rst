@@ -1,10 +1,13 @@
-Tasks
+Usage
 =====
+
+Tasks
+-----
 
 A single task represents a single thing that can be done.
 
 Well-known Tasks
-----------------
+~~~~~~~~~~~~~~~~
 
 Based loosely on the idea of `Scripts to Rule Them All`_, M-O defines a standard set of well-known tasks allowing predictability when joining new projects.
 
@@ -42,3 +45,8 @@ Based loosely on the idea of `Scripts to Rule Them All`_, M-O defines a standard
     Generate the documentation for this software.
 
 .. _`Scripts to Rule Them All`: https://github.com/github/scripts-to-rule-them-all
+
+Variables
+---------
+
+A variable represents something about the project which may change in different environments.
