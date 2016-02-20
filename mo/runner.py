@@ -48,12 +48,9 @@ def load_variables(configuration, values):
     variables = {}
 
     for name, conf in configuration.items():
-        try:
-            value = values.pop(name)
-        except KeyError:
-            value = None
-
-        variables[name] = Variable(name, conf.get('default'), value)
+        default = conf.get('default')
+        value = values.get(name)
+        variables[name] = Variable(name, default, value)
 
     return variables
 
@@ -106,11 +103,11 @@ class Task:
 
         self.after = configuration.get('after', [])
 
-    def run_pre(self, runner, args):
+    def run_pre(self, runner):
         for task in self.after:
-            runner.run_task(task, args)
+            runner.run_task(task)
 
-    def run(self, runner, args):
+    def run(self, runner):
         for command in self.commands:
             runner.io.output(Urgency.normal, Markup.progress,
                              Format.text, 'Executing: {}'.format(command))
@@ -159,7 +156,7 @@ class Task:
                 raise TaskError('Process exited with code: {}'
                                 .format(process.returncode))
 
-    def run_post(self, runner, args):
+    def run_post(self, runner):
         pass
 
 
@@ -173,30 +170,30 @@ class NoSuchTaskError(KeyError):
 
 
 class HelpTask(Task):
-    def __init__(self):
+    def __init__(self, given_variables):
         self.name = 'help'
         self.description = 'Show help about a task.'
-        self.required_variables = []
+        self.required_variables = ['topic']
         self.after = []
 
-    def run(self, runner, args):
-        for name in args:
-            task = runner.tasks[name]
+        self.topic = Variable('topic', value=given_variables.get('topic'))
 
-            text = '# {}\n'.format(name)
-            text += '\n'
-            text += task.description
-            text += '\n\n'
-            text += 'Required variables: {}' \
-                .format(', '.join(task.required_variables))
+    def run(self, runner):
+        task = runner.tasks[self.topic.value]
 
-            runner.io.output(Urgency.normal, Markup.plain,
-                             Format.markdown, text)
+        text = '# {}\n'.format(task.name)
+        text += '\n'
+        text += task.description
+        text += '\n\n'
+        text += 'Required variables: {}' \
+            .format(', '.join(task.required_variables))
+
+        runner.io.output(Urgency.normal, Markup.plain, Format.markdown, text)
 
 
 class Runner:
     def __init__(self, configuration, variables, io):
-        self.tasks = {'help': HelpTask()}
+        self.tasks = {'help': HelpTask(variables)}
         self.variables = load_variables(configuration.get('variables', {}),
                                         variables)
         self.io = io
@@ -213,16 +210,10 @@ class Runner:
             else:
                 self.tasks[name] = task
 
-        if variables:
-            keys = ', '.join(list(variables.keys()))
-            self.io.output(Urgency.warning, Markup.plain, Format.text,
-                           'Unknown variables: {}'.format(keys))
-            self.io.output(Urgency.normal, Markup.separator, Format.text, '')
-
         self.tasks_run = []
 
-    def run(self, name, args):
-        self.run_task(name, args)
+    def run(self, name):
+        self.run_task(name)
 
     def help(self):
         for task in self.tasks.values():
@@ -249,7 +240,7 @@ class Runner:
         else:
             raise NoSuchTaskError(similarities)
 
-    def run_task(self, name, args):
+    def run_task(self, name):
         if name in self.tasks_run:
             self.io.output(Urgency.normal, Markup.stage, Format.text,
                            'Running task: {}'.format(name))
@@ -269,12 +260,12 @@ class Runner:
                                    'Did you mean: {}'.format(names))
                 raise TaskError
 
-            task.run_pre(self, args)
+            task.run_pre(self)
             self.tasks_run.append(name)
 
             self.io.output(Urgency.normal, Markup.stage, Format.text,
                            'Running task: {}'.format(task.name))
 
-            task.run(self, args)
+            task.run(self)
 
-            task.run_post(self, args)
+            task.run_post(self)

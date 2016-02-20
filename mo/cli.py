@@ -25,8 +25,8 @@ def main():
     parser.add_argument('-f', '--file', default='mo.yaml')
     parser.add_argument('-v', '--var', dest='variables', nargs='*')
     parser.add_argument('-i', '--io', default='human')
-    parser.add_argument('task', nargs='?')
-    args, extra_args = parser.parse_known_args()
+    parser.add_argument('tasks', metavar='task', nargs='*')
+    args = parser.parse_args()
 
     with open(args.file) as file:
         configuration = yaml.load(file.read())
@@ -41,11 +41,13 @@ def main():
 
     exit_code = 0
 
-    if args.task is not None:
-        try:
-            runner.run(args.task, extra_args)
-        except TaskError:
-            exit_code = 1
+    if args.tasks:
+        for task in args.tasks:
+            try:
+                runner.run(task)
+            except TaskError:
+                exit_code = 1
+                break
     else:
         runner.help()
 

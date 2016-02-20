@@ -106,7 +106,7 @@ mo
 Every `M-O` configuration file comes with a built-in `help` task which can be used to find out more information about other tasks:
 
 ```sh
-mo help hello
+mo help -v topic=hello
 ```
 
 ## I/O
