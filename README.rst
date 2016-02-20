@@ -23,7 +23,7 @@ Feel free to open an issue or a pull request via GitHub.
 Release History
 ~~~~~~~~~~~~~~~
 
-See the `CHANGELOG <CHANGELOG.md>`__ file.
+See the `CHANGELOG <CHANGELOG.rst>`__ file.
 
 .. |Build Status| image:: https://travis-ci.org/thomasleese/mo.svg?branch=master
    :target: https://travis-ci.org/thomasleese/mo
