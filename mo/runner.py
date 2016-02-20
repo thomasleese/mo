@@ -2,9 +2,6 @@ from difflib import SequenceMatcher
 import select
 import subprocess
 
-import jinja2
-import jinja2.meta
-
 from .io import Urgency, Markup, Format
 
 
@@ -80,24 +77,14 @@ class Task:
             except KeyError:
                 raise ValueError('Task must have a description.')
 
-        env = jinja2.Environment(undefined=jinja2.StrictUndefined)
-
-        try:
-            ast = env.parse(configuration['command'])
-        except jinja2.exceptions.TemplateSyntaxError as e:
-            raise ValueError(e)
-
-        command_template = env.from_string(configuration['command'])
+        command_template = configuration['command']
 
         local_variables = load_variables(configuration.get('variables', {}),
                                          given_variables)
 
         self.variables = {**local_variables, **global_variables}
 
-        try:
-            self.commands = command_template.render(self.variables).split('\n')
-        except jinja2.exceptions.UndefinedError as e:
-            raise UndefinedVariableError(e)
+        self.commands = command_template.format(**self.variables).split('\n')
 
         self.after = configuration.get('after', [])
 

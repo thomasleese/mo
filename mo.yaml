@@ -2,7 +2,7 @@ tasks:
   venv:
     description: Create an approriate Python virtual environment.
     command: |
-      ([ ! -f venv/bin/python ] && {{ pyvenv }} venv) || exit 0
+      ([ ! -f venv/bin/python ] && {pyvenv} venv) || exit 0
       venv/bin/pip install --quiet -r requirements.txt
       venv/bin/pip install --quiet -e .
     variables:
