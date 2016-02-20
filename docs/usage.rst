@@ -98,7 +98,7 @@ input/output schemes, two at the moment.
    support into their software without having to understand ``mo.yaml``
    files.
 
-To change the scheme ``M-O`` uses, you can use the ``--io`` flag.
+To change the scheme ``M-O`` uses, you can use the ``--frontend`` flag.
 
 What's wrong with Grunt, Gulp, Make, [insert tool here]?
 --------------------------------------------------------
@@ -169,3 +169,8 @@ Variables
 ---------
 
 A variable represents something about the project which may change in different environments.
+
+Frontends
+---------
+
+A frontend is how output is presented to the user.

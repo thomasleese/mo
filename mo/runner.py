@@ -1,7 +1,7 @@
 import select
 import subprocess
 
-from .io import Urgency, Markup, Format
+from .frontend import Urgency, Markup, Format
 from .project import NoSuchTaskError, HelpStep, CommandStep
 
 
@@ -14,10 +14,10 @@ class TaskError(RuntimeError):
 
 
 class Runner:
-    def __init__(self, project, variables, io):
+    def __init__(self, project, variables, frontend):
         self.project = project
         self.variables = variables
-        self.io = io
+        self.frontend = frontend
 
         self.tasks_run = []
 
@@ -26,9 +26,9 @@ class Runner:
 
     def help(self):
         for task in self.project.tasks.values():
-            self.io.output(Urgency.normal, Markup.stage, Format.text,
+            self.frontend.output(Urgency.normal, Markup.stage, Format.text,
                            task.name)
-            self.io.output(Urgency.normal, Markup.progress,
+            self.frontend.output(Urgency.normal, Markup.progress,
                            Format.markdown, task.description)
 
     def find_task(self, name):
@@ -51,7 +51,7 @@ class Runner:
         variables = self.resolve_variables(task)
         command = step.command.format(**variables)
 
-        self.io.output(Urgency.normal, Markup.progress,
+        self.frontend.output(Urgency.normal, Markup.progress,
                          Format.text, 'Executing: {}'.format(command))
 
         process = subprocess.Popen(command, shell=True,
@@ -67,13 +67,13 @@ class Runner:
                 if fd == process.stdout.fileno():
                     line = process.stdout.readline().strip()
                     if line:
-                        self.io.output(Urgency.normal,
+                        self.frontend.output(Urgency.normal,
                                          Markup.plain,
                                          Format.unknown, line)
                 if fd == process.stderr.fileno():
                     line = process.stderr.readline().strip()
                     if line:
-                        self.io.output(Urgency.error, Markup.plain,
+                        self.frontend.output(Urgency.error, Markup.plain,
                                          Format.unknown, line)
 
             if process.poll() != None:
@@ -82,17 +82,17 @@ class Runner:
         for line in process.stdout.readlines():
             line = line.strip()
             if line:
-                self.io.output(Urgency.normal, Markup.plain,
+                self.frontend.output(Urgency.normal, Markup.plain,
                                  Format.unknown, line)
 
         for line in process.stderr.readlines():
             line = line.strip()
             if line:
-                self.io.output(Urgency.error, Markup.plain,
+                self.frontend.output(Urgency.error, Markup.plain,
                                  Format.unknown, line)
 
         if process.returncode != 0:
-            self.io.output(Urgency.error, Markup.plain,
+            self.frontend.output(Urgency.error, Markup.plain,
                              Format.text,
                              'Process did not exit successfully.')
             raise TaskError('Process exited with code: {}'
@@ -109,25 +109,25 @@ class Runner:
         text += 'Variables: {}' \
             .format(', '.join(task.variables))
 
-        self.io.output(Urgency.normal, Markup.plain, Format.markdown, text)
+        self.frontend.output(Urgency.normal, Markup.plain, Format.markdown, text)
 
     def run_task(self, name):
         if name in self.tasks_run:
-            self.io.output(Urgency.normal, Markup.stage, Format.text,
+            self.frontend.output(Urgency.normal, Markup.stage, Format.text,
                            'Running task: {}'.format(name))
-            self.io.output(Urgency.warning, Markup.plain, Format.text,
+            self.frontend.output(Urgency.warning, Markup.plain, Format.text,
                            'Already run.')
         else:
             try:
                 task = self.find_task(name)
             except NoSuchTaskError as e:
-                self.io.output(Urgency.normal, Markup.stage, Format.text,
+                self.frontend.output(Urgency.normal, Markup.stage, Format.text,
                                'Running task: {}'.format(name))
-                self.io.output(Urgency.error, Markup.plain, Format.text,
+                self.frontend.output(Urgency.error, Markup.plain, Format.text,
                                'No such task exists.')
                 if e.similarities:
                     names = ', '.join(task.name for task in e.similarities)
-                    self.io.output(Urgency.warning, Markup.plain, Format.text,
+                    self.frontend.output(Urgency.warning, Markup.plain, Format.text,
                                    'Did you mean: {}'.format(names))
                 raise TaskError
 
@@ -136,7 +136,7 @@ class Runner:
 
             self.tasks_run.append(name)
 
-            self.io.output(Urgency.normal, Markup.stage, Format.text,
+            self.frontend.output(Urgency.normal, Markup.stage, Format.text,
                            'Running task: {}'.format(task.name))
 
             for step in task.steps:

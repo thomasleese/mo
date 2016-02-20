@@ -14,10 +14,10 @@ Command-line Interface
     :undoc-members:
     :show-inheritance:
 
-I/O
----
+Frontends
+---------
 
-.. automodule:: mo.io
+.. automodule:: mo.frontend
     :members:
     :undoc-members:
     :show-inheritance:

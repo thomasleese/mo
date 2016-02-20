@@ -24,7 +24,7 @@ class Format(Enum):
     unknown = 'unknown'
 
 
-class InputOutput:
+class Frontend:
     def begin(self):
         pass
 
@@ -35,7 +35,7 @@ class InputOutput:
         pass
 
 
-class Human(InputOutput):
+class Human(Frontend):
     def begin(self):
         colorama.init()
         print()
@@ -87,7 +87,7 @@ class Human(InputOutput):
             print('{}{}{}'.format(prefix, line, suffix))
 
 
-class Json(InputOutput):
+class Json(Frontend):
     def __call__(self, urgency, markup, format, content):
         print(json.dumps({'urgency': urgency.value, 'markup': markup.value,
                           'format': format.value, 'content': content}))
