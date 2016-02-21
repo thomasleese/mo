@@ -5,27 +5,40 @@ import sys
 import colorama
 from colorama import Fore, Style
 
-from .project import CommandStep, HelpStep, StepCollection, Task, Variable, VariableCollection
+from .project import CommandStep, HelpStep, StepCollection, Task, Variable, \
+    VariableCollection
 from .runner import Event
 
 
 class Frontend:
+    """A frontend takes output from the runner and displays it to the user."""
+
     def begin(self):
+        """Begin processing output."""
         pass
 
     def end(self):
+        """End processing output."""
         pass
 
     def output(self, event):
+        """Process a single event."""
         pass
 
 
 class Debug(Frontend):
+    """The debug frontend simply prints the raw events."""
+
     def output(self, event):
         print(event)
 
 
 class Human(Frontend):
+    """
+    The human frontend provides colourful textual output useful for humans
+    to read.
+    """
+
     def begin(self):
         colorama.init()
 
@@ -79,7 +92,27 @@ class Human(Frontend):
 
 
 class SerialisingFrontend(Frontend):
+    """
+    A serialising frontend first serialises events into dictionaries before
+    outputting.
+    """
+
     def serialise(self, obj):
+        """
+        Take an object from the project or the runner and serialise it into a
+        dictionary.
+
+        Parameters
+        ----------
+        obj : object
+            An object to serialise.
+
+        Returns
+        -------
+        object
+            A serialised version of the input object.
+        """
+
         if isinstance(obj, (list, VariableCollection, StepCollection)):
             return [self.serialise(element) for element in obj]
         elif isinstance(obj, dict):
@@ -87,7 +120,7 @@ class SerialisingFrontend(Frontend):
         elif isinstance(obj, str):
             return obj
         elif isinstance(obj, Event):
-            return {'name': obj.name, 'args': self.serialise(obj.args)}
+            return self.serialise(obj._asdict())
         elif isinstance(obj, Task):
             return self.serialise(obj._asdict())
         elif isinstance(obj, Variable):
@@ -103,6 +136,8 @@ class SerialisingFrontend(Frontend):
 
 
 class Json(SerialisingFrontend):
+    """Display the output as line terminated JSON objects."""
+
     def output(self, event):
         print(json.dumps(self.serialise(event)))
 

@@ -7,6 +7,8 @@ from difflib import SequenceMatcher
 class InvalidProjectError(ValueError):
     """The project cannot be loaded because it is invalid."""
 
+    pass
+
 
 class InvalidVariableError(InvalidProjectError):
     """A variable is invalid."""
@@ -24,10 +26,20 @@ class InvalidTaskError(InvalidProjectError):
 
 class InvalidStepError(InvalidProjectError):
     """A step is invalid."""
+
     pass
 
 
 class NoSuchTaskError(KeyError):
+    """
+    A task cannot be found.
+
+    Parameters
+    ----------
+    similarities
+        A list of similarly named tasks.
+    """
+
     def __init__(self, similarities):
         self.similarities = similarities
 

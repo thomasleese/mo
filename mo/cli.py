@@ -10,6 +10,15 @@ from .runner import Runner
 
 
 def parse_variables(args):
+    """
+    Parse variables as passed on the command line.
+
+    Returns
+    -------
+    dict
+        Mapping variable name to the value.
+    """
+
     variables = {}
 
     if args is not None:
@@ -23,6 +32,8 @@ def parse_variables(args):
 
 
 def main():
+    """Run the CLI."""
+
     parser = ArgumentParser()
     parser.add_argument('-f', '--file', default='mo.yaml')
     parser.add_argument('-v', '--var', dest='variables', nargs='*')

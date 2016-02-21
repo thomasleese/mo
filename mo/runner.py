@@ -13,6 +13,8 @@ Event = namedtuple('Event', ['name', 'args'])
 
 
 def make_event(event, **kwargs):
+    """A convenience function to make an Event."""
+
     return Event(event, kwargs)
 
 
@@ -66,6 +68,8 @@ def RunningCommandEvent(command):
 
 
 class Runner:
+    """A runner takes a project and some variables and runs it."""
+
     def __init__(self, project, variables):
         self.project = project
         self.variables = variables
@@ -74,19 +78,37 @@ class Runner:
         self.task_queue = []
 
     def run(self):
+        """Run any queued tasks."""
+
         for name in self.task_queue:
             yield from self.run_task(name)
 
     def help(self):
+        """Run a help event."""
+
         yield HelpEvent(self.project)
 
     def queue_task(self, name):
+        """Queue a task for execution."""
+
         self.task_queue.append(name)
 
     def find_task(self, name):
+        """Find a task by name."""
+
         return self.project.find_task(name)
 
     def resolve_variables(self, task):
+        """
+        Resolve task variables based on input variables and the default
+        values.
+
+        Raises
+        ------
+        LookupError
+            If a variable is missing.
+        """
+
         variables = {**task.variables, **self.project.variables}
 
         values = {}
@@ -100,6 +122,8 @@ class Runner:
         return values
 
     def run_command_step(self, task, step, variables):
+        """Run a command step."""
+
         command = step.command.format(**variables)
 
         yield RunningCommandEvent(command)
@@ -141,6 +165,8 @@ class Runner:
             raise StopTask
 
     def run_help_step(self, task, step, variables):
+        """Run a help step."""
+
         task = self.project.find_task(variables['task'])
 
         text = '# {}\n'.format(task.name)
@@ -153,6 +179,8 @@ class Runner:
         yield HelpStepOutputEvent(text)
 
     def run_task(self, name):
+        """Run a task."""
+
         if name in self.tasks_run:
             yield SkippingTaskEvent(name)
         else:
