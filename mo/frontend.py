@@ -5,8 +5,7 @@ import sys
 import colorama
 from colorama import Fore, Style
 
-from .project import CommandStep, HelpStep, StepCollection, Task, Variable, \
-    VariableCollection
+from .project import Step, StepCollection, Task, Variable, VariableCollection
 from .runner import Event
 
 
@@ -119,16 +118,8 @@ class SerialisingFrontend(Frontend):
             return {k: self.serialise(v) for k, v in obj.items()}
         elif isinstance(obj, str):
             return obj
-        elif isinstance(obj, Event):
+        elif isinstance(obj, (Event, Task, Variable, Step)):
             return self.serialise(obj._asdict())
-        elif isinstance(obj, Task):
-            return self.serialise(obj._asdict())
-        elif isinstance(obj, Variable):
-            return self.serialise(obj._asdict())
-        elif isinstance(obj, CommandStep):
-            return {'type': 'command', 'command': obj.command}
-        elif isinstance(obj, HelpStep):
-            return {'type': 'help'}
         elif obj is None:
             return None
         else:

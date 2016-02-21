@@ -55,8 +55,7 @@ class Variable(_Variable):
 Task = namedtuple('Task', ['name', 'description', 'variables', 'steps',
                   'dependencies'])
 
-HelpStep = namedtuple('HelpStep', [])
-CommandStep = namedtuple('CommandStep', ['command'])
+Step = namedtuple('Step', ['type', 'args'])
 
 
 class VariableCollection(UserDict):
@@ -114,7 +113,7 @@ class StepCollection(UserList):
 
     def _load_from_config(self, config):
         if isinstance(config, str):
-            self.append(CommandStep(config))
+            self.append(Step('command', config))
         elif isinstance(config, list):
             for conf in config:
                 self._load_from_config(conf)
@@ -125,22 +124,11 @@ class StepCollection(UserList):
 
     @staticmethod
     def _load_step_from_config(config):
-        try:
-            type = config['type']
-        except KeyError:
-            raise InvalidStepError('Missing a type.')
+        if len(config) != 1:
+            raise InvalidStepError('Malformed step.')
 
-        if type == 'help':
-            return HelpStep()
-        elif type == 'command':
-            try:
-                command = config['command']
-            except KeyError:
-                raise InvalidStepError('Missing a command.')
-
-            return CommandStep(command)
-        else:
-            raise InvalidStepError('Unknown type: {}'.format(type))
+        type = list(config.keys())[0]
+        return Step(type, config[type])
 
     def __str__(self):
         return ', '.join(self.keys())
@@ -281,7 +269,7 @@ class Project:
                                       None)
 
         steps = StepCollection()
-        steps.append(HelpStep())
+        steps.append(Step('help', None))
 
         return Task('help', 'Get help about a task.', variables, steps, [])
 

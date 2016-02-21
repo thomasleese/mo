@@ -2,7 +2,7 @@ from collections import namedtuple
 import select
 import subprocess
 
-from .project import NoSuchTaskError, HelpStep, CommandStep
+from .project import NoSuchTaskError, Step
 
 
 class StopTask(StopIteration):
@@ -25,6 +25,10 @@ def ResolvingTaskVariablesEvent(variables):
 
 def UndefinedVariableErrorEvent(variable):
     return make_event('UndefinedVariableError', variable=variable)
+
+
+def UnknownStepTypeErrorEvent(step):
+    return make_event('UnknownStepTypeError', step=step)
 
 
 def FindingTaskEvent(name):
@@ -124,7 +128,7 @@ class Runner:
     def run_command_step(self, task, step, variables):
         """Run a command step."""
 
-        command = step.command.format(**variables)
+        command = step.args.format(**variables)
 
         yield RunningCommandEvent(command)
 
@@ -209,9 +213,12 @@ class Runner:
                     yield UndefinedVariableErrorEvent(e.args[0])
                     raise StopTask
 
-                if isinstance(step, HelpStep):
+                if step.type == 'help':
                     yield from self.run_help_step(task, step, variables)
-                elif isinstance(step, CommandStep):
+                elif step.type == 'command':
                     yield from self.run_command_step(task, step, variables)
+                else:
+                    yield UnknownStepTypeErrorEvent(step)
+                    raise StopTask
 
             yield FinishedTaskEvent(task)
