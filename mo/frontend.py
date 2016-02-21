@@ -40,6 +40,7 @@ class Human(Frontend):
 
     def begin(self):
         colorama.init()
+        print()
 
     def end(self):
         print()
@@ -48,13 +49,11 @@ class Human(Frontend):
         character_style = Fore.BLUE + Style.BRIGHT
 
         if event.name == 'RunningTask':
-            print()
             character = 'λ'
             text = 'Running task: {}{}'.format(Style.NORMAL,
                                                event.args['task'].name)
             text_style = Style.BRIGHT
         elif event.name == 'SkippingTask':
-            print()
             character = 'λ'
             character_style = Fore.YELLOW + Style.BRIGHT
             text = 'Skipping task: {}{}'.format(Style.NORMAL,
@@ -75,6 +74,14 @@ class Human(Frontend):
             character = '!'
             character_style = Fore.RED + Style.BRIGHT
             text = 'Undefined variable: {}'.format(event.args['variable'])
+            text_style = Fore.RED
+        elif event.name == 'TaskNotFound':
+            character = '!'
+            character_style = Fore.RED + Style.BRIGHT
+            text = 'No such task: {}'.format(event.args['name'])
+            if event.args['similarities']:
+                text += ' Did you mean? {}' \
+                    .format(', '.join(event.args['similarities']))
             text_style = Fore.RED
         elif event.name == 'HelpStepOutput':
             print()

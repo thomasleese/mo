@@ -71,6 +71,9 @@ def RunningCommandEvent(command):
     return make_event('RunningCommand', command=command)
 
 
+def TaskNotFoundEvent(name, similarities):
+    return make_event('TaskNotFound', name=name, similarities=similarities)
+
 class Runner:
     """A runner takes a project and some variables and runs it."""
 
@@ -171,7 +174,13 @@ class Runner:
     def run_help_step(self, task, step, variables):
         """Run a help step."""
 
-        task = self.project.find_task(variables['task'])
+        task_name = step.args or variables['task']
+
+        try:
+            task = self.project.find_task(task_name)
+        except NoSuchTaskError as e:
+            yield TaskNotFoundEvent(task_name, e.similarities)
+            raise StopTask
 
         text = '# {}\n'.format(task.name)
         text += '\n'
@@ -193,7 +202,7 @@ class Runner:
                 task = self.find_task(name)
             except NoSuchTaskError as e:
                 yield TaskNotFoundEvent(name, e.similarities)
-                raise TaskError
+                raise StopTask
 
             yield StartingTaskEvent(task)
 
