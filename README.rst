@@ -6,8 +6,6 @@ M-O Task Runner
 .. figure:: https://github.com/thomasleese/mo/raw/master/assets/screenshot.png
    :alt: Screenshot
 
-   Screenshot
-
 Documentation
 ~~~~~~~~~~~~~
 
