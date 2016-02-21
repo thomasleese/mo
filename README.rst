@@ -1,10 +1,20 @@
 `M-O <https://github.com/thomasleese/mo/blob/master/mo.yaml>`__ Task Runner
 ===========================================================================
 
-|Build Status|
+.. image:: https://img.shields.io/pypi/dm/mo.svg
+    :target: https://pypi.python.org/pypi/mo
+
+.. image:: https://img.shields.io/pypi/v/mo.svg
+    :target: https://pypi.python.org/pypi/mo
+
+.. image:: https://img.shields.io/travis/thomasleese/mo.svg
+    :target: https://travis-ci.org/thomasleese/mo
+
+.. image:: https://img.shields.io/github/license/thomasleese/mo.svg
+    :target: https://github.com/thomasleese/mo
 
 .. figure:: https://github.com/thomasleese/mo/raw/master/assets/screenshot.png
-   :alt: Screenshot
+    :alt: Screenshot
 
 Documentation
 ~~~~~~~~~~~~~
@@ -22,6 +32,3 @@ Release History
 ~~~~~~~~~~~~~~~
 
 See the `CHANGELOG <CHANGELOG.rst>`__ file.
-
-.. |Build Status| image:: https://travis-ci.org/thomasleese/mo.svg?branch=master
-   :target: https://travis-ci.org/thomasleese/mo
