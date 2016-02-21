@@ -32,7 +32,14 @@ class NoSuchTaskError(KeyError):
         self.similarities = similarities
 
 
-Variable = namedtuple('Variable', ['name', 'description', 'default'])
+_Variable = namedtuple('_Variable', ['name', 'description', 'default'])
+
+
+class Variable(_Variable):
+    def __str__(self):
+        return '{} ({})'.format(self.name, self.description)
+
+
 Task = namedtuple('Task', ['name', 'description', 'variables', 'steps',
                   'dependencies'])
 

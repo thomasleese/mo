@@ -1,35 +1,87 @@
+from collections import namedtuple
 import select
 import subprocess
 
-from .frontend import Urgency, Markup, Format
 from .project import NoSuchTaskError, HelpStep, CommandStep
 
 
-class UndefinedVariableError(ValueError):
+class StopTask(StopIteration):
     pass
 
 
-class TaskError(RuntimeError):
-    pass
+Event = namedtuple('Event', ['name', 'args'])
+
+
+def make_event(event, **kwargs):
+    return Event(event, kwargs)
+
+
+# all the events are definied here
+def ResolvingTaskVariablesEvent(variables):
+    return make_event('ResolvingTaskVariables', variables=variables)
+
+
+def UndefinedVariableErrorEvent(variable):
+    return make_event('UndefinedVariableError', variable=variable)
+
+
+def FindingTaskEvent(name):
+    return make_event('FindingTask', name=name)
+
+
+def StartingTaskEvent(task):
+    return make_event('StartingTask', task=task)
+
+
+def RunningTaskEvent(task):
+    return make_event('RunningTask', task=task)
+
+
+def SkippingTaskEvent(name):
+    return make_event('SkippingTask', name=name)
+
+
+def RunningStepEvent(step):
+    return make_event('RunningStep', step=step)
+
+
+def FinishedTaskEvent(task):
+    return make_event('FinishedTask', task=task)
+
+
+def HelpEvent(project):
+    return make_event('Help', project=project)
+
+
+def HelpStepOutputEvent(output):
+    return make_event('HelpStepOutput', output=output)
+
+
+def CommandOutputEvent(pipe, output):
+    return make_event('CommandOutput', pipe=pipe, output=output)
+
+
+def RunningCommandEvent(command):
+    return make_event('RunningCommand', command=command)
 
 
 class Runner:
-    def __init__(self, project, variables, frontend):
+    def __init__(self, project, variables):
         self.project = project
         self.variables = variables
-        self.frontend = frontend
 
         self.tasks_run = []
+        self.task_queue = []
 
-    def run(self, name):
-        self.run_task(name)
+    def run(self):
+        for name in self.task_queue:
+            yield from self.run_task(name)
 
     def help(self):
-        for task in self.project.tasks.values():
-            self.frontend.output(Urgency.normal, Markup.stage, Format.text,
-                           task.name)
-            self.frontend.output(Urgency.normal, Markup.progress,
-                           Format.markdown, task.description)
+        yield HelpEvent(self.project)
+
+    def queue_task(self, name):
+        self.task_queue.append(name)
 
     def find_task(self, name):
         return self.project.find_task(name)
@@ -42,17 +94,15 @@ class Runner:
         for variable in variables.values():
             value = self.variables.get(variable.name) or variable.default
             if value is None:
-                raise UndefinedVariableError(variable.name)
+                raise LookupError(variable)
             values[variable.name] = value
 
         return values
 
-    def run_command_step(self, task, step):
-        variables = self.resolve_variables(task)
+    def run_command_step(self, task, step, variables):
         command = step.command.format(**variables)
 
-        self.frontend.output(Urgency.normal, Markup.progress,
-                         Format.text, 'Executing: {}'.format(command))
+        yield RunningCommandEvent(command)
 
         process = subprocess.Popen(command, shell=True,
                                    universal_newlines=True, bufsize=1,
@@ -67,14 +117,11 @@ class Runner:
                 if fd == process.stdout.fileno():
                     line = process.stdout.readline().strip()
                     if line:
-                        self.frontend.output(Urgency.normal,
-                                         Markup.plain,
-                                         Format.unknown, line)
+                        yield CommandOutputEvent('stdout', line)
                 if fd == process.stderr.fileno():
                     line = process.stderr.readline().strip()
                     if line:
-                        self.frontend.output(Urgency.error, Markup.plain,
-                                         Format.unknown, line)
+                        yield CommandOutputEvent('stderr', line)
 
             if process.poll() != None:
                 break
@@ -82,24 +129,18 @@ class Runner:
         for line in process.stdout.readlines():
             line = line.strip()
             if line:
-                self.frontend.output(Urgency.normal, Markup.plain,
-                                 Format.unknown, line)
+                yield CommandOutputEvent('stdout', line)
 
         for line in process.stderr.readlines():
             line = line.strip()
             if line:
-                self.frontend.output(Urgency.error, Markup.plain,
-                                 Format.unknown, line)
+                yield CommandOutputEvent('stderr', line)
 
         if process.returncode != 0:
-            self.frontend.output(Urgency.error, Markup.plain,
-                             Format.text,
-                             'Process did not exit successfully.')
-            raise TaskError('Process exited with code: {}'
-                            .format(process.returncode))
+            yield CommandFailed(process.returncode)
+            raise StopTask
 
-    def run_help_step(self, task, step):
-        variables = self.resolve_variables(task)
+    def run_help_step(self, task, step, variables):
         task = self.project.find_task(variables['task'])
 
         text = '# {}\n'.format(task.name)
@@ -109,38 +150,40 @@ class Runner:
         text += 'Variables: {}' \
             .format(', '.join(task.variables))
 
-        self.frontend.output(Urgency.normal, Markup.plain, Format.markdown, text)
+        yield HelpStepOutputEvent(text)
 
     def run_task(self, name):
         if name in self.tasks_run:
-            self.frontend.output(Urgency.normal, Markup.stage, Format.text,
-                           'Running task: {}'.format(name))
-            self.frontend.output(Urgency.warning, Markup.plain, Format.text,
-                           'Already run.')
+            yield SkippingTaskEvent(name)
         else:
+            yield FindingTaskEvent(name)
             try:
                 task = self.find_task(name)
             except NoSuchTaskError as e:
-                self.frontend.output(Urgency.normal, Markup.stage, Format.text,
-                               'Running task: {}'.format(name))
-                self.frontend.output(Urgency.error, Markup.plain, Format.text,
-                               'No such task exists.')
-                if e.similarities:
-                    names = ', '.join(task.name for task in e.similarities)
-                    self.frontend.output(Urgency.warning, Markup.plain, Format.text,
-                                   'Did you mean: {}'.format(names))
+                yield TaskNotFoundEvent(name, e.similarities)
                 raise TaskError
 
+            yield StartingTaskEvent(task)
+
             for name in task.dependencies:
-                self.run_task(name)
+                yield from self.run_task(name)
 
             self.tasks_run.append(name)
 
-            self.frontend.output(Urgency.normal, Markup.stage, Format.text,
-                           'Running task: {}'.format(task.name))
+            yield RunningTaskEvent(task)
 
             for step in task.steps:
+                yield RunningStepEvent(step)
+
+                try:
+                    variables = self.resolve_variables(task)
+                except LookupError as e:
+                    yield UndefinedVariableErrorEvent(e.args[0])
+                    raise StopTask
+
                 if isinstance(step, HelpStep):
-                    self.run_help_step(task, step)
+                    yield from self.run_help_step(task, step, variables)
                 elif isinstance(step, CommandStep):
-                    self.run_command_step(task, step)
+                    yield from self.run_command_step(task, step, variables)
+
+            yield FinishedTaskEvent(task)

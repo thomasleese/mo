@@ -6,7 +6,7 @@ import yaml
 
 from .frontend import MAPPINGS as FRONTEND_MAPPINGS
 from .project import Project
-from .runner import Runner, TaskError
+from .runner import Runner
 
 
 def parse_variables(args):
@@ -26,7 +26,8 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('-f', '--file', default='mo.yaml')
     parser.add_argument('-v', '--var', dest='variables', nargs='*')
-    parser.add_argument('--frontend', default='human')
+    parser.add_argument('--frontend', default='human',
+                        choices=FRONTEND_MAPPINGS.keys())
     parser.add_argument('tasks', metavar='task', nargs='*')
     args = parser.parse_args()
 
@@ -37,24 +38,21 @@ def main():
 
     variables = parse_variables(args.variables)
 
+    runner = Runner(project, variables)
+
+    if args.tasks:
+        for task in args.tasks:
+            runner.queue_task(task)
+
+        func = runner.run
+    else:
+        func = runner.help
+
     frontend = FRONTEND_MAPPINGS[args.frontend]()
 
     frontend.begin()
 
-    runner = Runner(project, variables, frontend)
-
-    exit_code = 0
-
-    if args.tasks:
-        for task in args.tasks:
-            try:
-                runner.run(task)
-            except TaskError:
-                exit_code = 1
-                break
-    else:
-        runner.help()
+    for event in func():
+        frontend.output(event)
 
     frontend.end()
-
-    sys.exit(exit_code)

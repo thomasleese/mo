@@ -3,25 +3,10 @@ import json
 import sys
 
 import colorama
+from colorama import Fore, Style
 
-
-class Urgency(Enum):
-    normal = 'normal'
-    warning = 'warning'
-    error = 'error'
-
-
-class Markup(Enum):
-    plain = 'plain'
-    stage = 'stage'
-    progress = 'progress'
-    separator = 'separator'
-
-
-class Format(Enum):
-    text = 'text'
-    markdown = 'markdown'
-    unknown = 'unknown'
+from .project import CommandStep, HelpStep, StepCollection, Task, Variable, VariableCollection
+from .runner import Event
 
 
 class Frontend:
@@ -31,69 +16,96 @@ class Frontend:
     def end(self):
         pass
 
-    def output(self, urgency, markup, format, content):
+    def output(self, event):
         pass
+
+
+class Debug(Frontend):
+    def output(self, event):
+        print(event)
 
 
 class Human(Frontend):
     def begin(self):
         colorama.init()
-        print()
 
     def end(self):
         print()
 
-    def get_prefix(self, urgency, markup, format):
-        s = ' '
+    def output(self, event):
+        character_style = Fore.BLUE + Style.BRIGHT
 
-        s += colorama.Fore.BLUE
-        s += colorama.Style.BRIGHT
-
-        if markup == Markup.stage:
-            s += 'λ '
-        elif markup == Markup.progress:
-            s += '> '
+        if event.name == 'RunningTask':
+            print()
+            character = 'λ'
+            text = 'Running task: {}'.format(event.args['task'].name)
+            text_style = Style.BRIGHT
+        elif event.name == 'SkippingTask':
+            print()
+            character = 'λ'
+            character_style = Fore.YELLOW + Style.BRIGHT
+            text = 'Skipping task: {}'.format(event.args['name'])
+            text_style = Style.DIM
+        elif event.name == 'RunningCommand':
+            character = '>'
+            text = 'Executing: {}'.format(event.args['command'])
+            text_style = Style.BRIGHT
+        elif event.name == 'CommandOutput':
+            character = ' '
+            text = event.args['output']
+            text_style = Style.DIM
+            if event.args['pipe'] == 'stderr':
+                text_style += Fore.RED
+        elif event.name == 'UndefinedVariableError':
+            character = '!'
+            character_style = Fore.RED + Style.BRIGHT
+            text = 'Undefined variable: {}'.format(event.args['variable'])
+            text_style = Fore.RED
+        elif event.name == 'HelpStepOutput':
+            print()
+            for line in event.args['output'].splitlines():
+                print('', line)
+            return
         else:
-            s += '  '
+            return
 
-        if urgency == Urgency.normal:
-            s += colorama.Fore.BLACK
-        if urgency == Urgency.warning:
-            s += colorama.Fore.YELLOW
-        elif urgency == Urgency.error:
-            s += colorama.Fore.RED
-
-        if markup != Markup.stage:
-            s += colorama.Style.NORMAL
-
-        if format == Format.unknown:
-            s += colorama.Style.DIM
-
-        return s
-
-    def get_suffix(self, urgency, markup, format):
-        return colorama.Style.RESET_ALL
-
-    def output(self, urgency, markup, format, content):
-        lines = content.splitlines()
-
-        if markup == Markup.separator:
-            lines.append('')
-
-        prefix = self.get_prefix(urgency, markup, format)
-        suffix = self.get_suffix(urgency, markup, format)
-
-        for line in lines:
-            print('{}{}{}'.format(prefix, line, suffix))
+        print(' {}{}{} {}{}{}'.format(
+            character_style, character, Style.RESET_ALL,
+            text_style, text, Style.RESET_ALL
+        ))
 
 
-class Json(Frontend):
-    def __call__(self, urgency, markup, format, content):
-        print(json.dumps({'urgency': urgency.value, 'markup': markup.value,
-                          'format': format.value, 'content': content}))
+class SerialisingFrontend(Frontend):
+    def serialise(self, obj):
+        if isinstance(obj, (list, VariableCollection, StepCollection)):
+            return [self.serialise(element) for element in obj]
+        elif isinstance(obj, dict):
+            return {k: self.serialise(v) for k, v in obj.items()}
+        elif isinstance(obj, str):
+            return obj
+        elif isinstance(obj, Event):
+            return {'name': obj.name, 'args': self.serialise(obj.args)}
+        elif isinstance(obj, Task):
+            return self.serialise(obj._asdict())
+        elif isinstance(obj, Variable):
+            return self.serialise(obj._asdict())
+        elif isinstance(obj, CommandStep):
+            return {'type': 'command', 'command': obj.command}
+        elif isinstance(obj, HelpStep):
+            return {'type': 'help'}
+        elif obj is None:
+            return None
+        else:
+            raise TypeError(type(obj))
+
+
+class Json(SerialisingFrontend):
+    def output(self, event):
+        print(json.dumps(self.serialise(event)))
 
 
 MAPPINGS = {
     'human': Human,
+    'debug': Debug,
     'json': Json
 }
