@@ -38,17 +38,20 @@ class Human(Frontend):
         if event.name == 'RunningTask':
             print()
             character = 'λ'
-            text = 'Running task: {}'.format(event.args['task'].name)
+            text = 'Running task: {}{}'.format(Style.NORMAL,
+                                               event.args['task'].name)
             text_style = Style.BRIGHT
         elif event.name == 'SkippingTask':
             print()
             character = 'λ'
             character_style = Fore.YELLOW + Style.BRIGHT
-            text = 'Skipping task: {}'.format(event.args['name'])
+            text = 'Skipping task: {}{}'.format(Style.NORMAL,
+                                                event.args['name'])
             text_style = Style.DIM
         elif event.name == 'RunningCommand':
             character = '>'
-            text = 'Executing: {}'.format(event.args['command'])
+            text = 'Executing: {}{}'.format(Style.NORMAL,
+                                            event.args['command'])
             text_style = Style.BRIGHT
         elif event.name == 'CommandOutput':
             character = ' '
