@@ -1,6 +1,10 @@
 `M-O <https://github.com/thomasleese/mo/blob/master/mo.yaml>`__ Task Runner
 ===========================================================================
 
+| `Introduction`_
+| `Getting Started`_
+| `Community`_
+
 Introduction
 ------------
 
