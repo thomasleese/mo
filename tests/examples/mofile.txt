@@ -1,0 +1,4 @@
+[tasks]
+  test ->
+    steps
+      1. echo hi

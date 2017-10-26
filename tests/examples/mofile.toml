@@ -1,0 +1,5 @@
+[tasks]
+  [tasks.test]
+    steps = [
+      "echo hi"
+    ]

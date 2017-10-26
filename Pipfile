@@ -4,10 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+
 colorama = "*"
 pyyaml = "*"
+toml = "*"
 
 [dev-packages]
+
 pytest = "*"
 "pytest-runner" = "*"
 coverage = "*"

@@ -20,7 +20,8 @@ setup(
     },
     install_requires=[
         'PyYAML',
-        'colorama'
+        'colorama',
+        'toml',
     ],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],
