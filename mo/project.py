@@ -207,7 +207,7 @@ class Project:
     ----------
     config : dict
         This configuration for this project, generally this comes from a
-        ``mo.yaml`` file.
+        ``Mofile`` file.
     """
 
     def __init__(self, config, path):

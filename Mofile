@@ -17,3 +17,8 @@ tasks:
       - pipenv run python setup.py build_sphinx
     after:
       - venv
+
+  something:
+    description: Do something.
+    steps:
+      - blah hello

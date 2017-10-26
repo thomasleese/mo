@@ -35,7 +35,7 @@ def main():
     """Run the CLI."""
 
     parser = ArgumentParser()
-    parser.add_argument('-f', '--file', default='mo.yaml')
+    parser.add_argument('-f', '--file', default='Mofile')
     parser.add_argument('-v', '--var', dest='variables', nargs='*')
     parser.add_argument('--frontend', default='human',
                         choices=FRONTEND_MAPPINGS.keys())

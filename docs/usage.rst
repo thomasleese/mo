@@ -4,7 +4,7 @@ Usage
 Configuration
 -------------
 
-``M-O`` is configured using a YAML file, typically called ``mo.yaml``.
+``M-O`` is configured using a YAML file, typically called ``Mofile``.
 
 Tasks
 ~~~~~
@@ -194,7 +194,7 @@ frontends schemes, three at the moment.
     containing all the information required to display a suitable output to the
     user. The idea behind the ``json`` scheme is that IDEs and other tools will
     be able to easily integrate ``M-O`` support into their software without
-    having to understand ``mo.yaml`` files.
+    having to understand ``Mofile`` files.
 
 To change the scheme ``M-O`` uses, you can use the ``--frontend`` flag.
 

@@ -5,4 +5,3 @@
 - Much much better docs
 - Cache tasks (does it need running?)
 - Running "mo" with no command gives no output
-- Change `mo.yaml` into `Mofile`

@@ -1,4 +1,4 @@
-`M-O <https://github.com/thomasleese/mo/blob/master/mo.yaml>`__ Task Runner
+`M-O <https://github.com/thomasleese/mo/blob/master/Mofile>`__ Task Runner
 ===========================================================================
 
 | `Introduction`_
