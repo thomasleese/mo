@@ -4,20 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-
-alabaster = "*"
-babel = "*"
 colorama = "*"
-docutils = "*"
-pygments = "*"
-pytz = "*"
 pyyaml = "*"
-snowballstemmer = "*"
-sphinx = "*"
-"sphinx-rtd-theme" = "*"
-
 
 [dev-packages]
 pytest = "*"
 "pytest-runner" = "*"
 coverage = "*"
+sphinx = "*"
+"sphinx-rtd-theme" = "*"
