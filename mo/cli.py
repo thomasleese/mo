@@ -1,11 +1,8 @@
 from argparse import ArgumentParser
-from pathlib import Path
 import sys
 
-import yaml
-
+from . import mofile
 from .frontend import MAPPINGS as FRONTEND_MAPPINGS
-from .project import Project
 from .runner import Runner
 
 
@@ -42,10 +39,7 @@ def main():
     parser.add_argument('tasks', metavar='task', nargs='*')
     args = parser.parse_args()
 
-    with open(args.file) as file:
-        configuration = yaml.load(file.read())
-
-    project = Project(configuration, Path(args.file).resolve().parent)
+    project = mofile.load(args.file)
 
     variables = parse_variables(args.variables)
 
