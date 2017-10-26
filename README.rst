@@ -13,7 +13,7 @@
 .. image:: https://img.shields.io/github/license/thomasleese/mo.svg
     :target: https://github.com/thomasleese/mo
 
-.. figure:: https://github.com/thomasleese/mo/raw/master/assets/screenshot.png
+.. figure:: https://github.com/thomasleese/mo/raw/master/docs/screenshot.png
     :alt: Screenshot
 
 Documentation
