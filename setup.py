@@ -1,14 +1,12 @@
 from setuptools import find_packages, setup
 
-from mo import __version__
-
 
 with open('README.rst') as file:
     long_description = file.read()
 
 setup(
     name='mo',
-    version=__version__,
+    version='0.3.0',
     description='Incredibly simple YAML-based task runner.',
     long_description=long_description,
     url='https://github.com/thomasleese/mo',
