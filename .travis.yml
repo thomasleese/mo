@@ -6,7 +6,7 @@ python:
   - 'nightly'
 install:
   - pip install pipenv
-  - pipenv install
+  - pipenv install -d
   - pipenv run pip install -e .
 script:
   - pipenv run mo test

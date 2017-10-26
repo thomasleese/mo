@@ -22,6 +22,8 @@ setup(
         'PyYAML',
         'colorama'
     ],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
     test_suite='tests',
     download_url='https://github.com/thomasleese/mo/releases',
     keywords=['task', 'runner'],
