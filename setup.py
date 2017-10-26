@@ -13,7 +13,7 @@ setup(
     long_description=long_description,
     url='https://github.com/thomasleese/mo',
     author='Thomas Leese',
-    author_email='inbox@thomasleese.me',
+    author_email='thomas@leese.io',
     packages=find_packages(),
     entry_points={
         'console_scripts': ['mo = mo.cli:main']
