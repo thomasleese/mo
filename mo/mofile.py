@@ -12,6 +12,6 @@ def load(filename):
     path = Path(filename).resolve()
 
     with path.open() as file:
-        config = yaml.load(file.read())
+        config = yaml.safe_load(file.read())
 
     return Project(config, path.parent)
