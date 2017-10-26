@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+
+alabaster = "*"
+Babel = "*"
+colorama = "*"
+coverage = "*"
+docutils = "*"
+pygments = "*"
+pytz = "*"
+pyyaml = "*"
+snowballstemmer = "*"
+sphinx = "*"
+"sphinx-rtd-theme" = "*"
+
+
+[dev-packages]

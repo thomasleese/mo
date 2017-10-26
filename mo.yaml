@@ -2,29 +2,18 @@ tasks:
   venv:
     description: Create an approriate Python virtual environment.
     steps:
-      - ([ ! -f venv/bin/python ] && {pyvenv} venv) || exit 0
-      - venv/bin/pip install --quiet -r requirements.txt
-      - venv/bin/pip install --quiet -e .
-    variables:
-      pyvenv:
-        description: Location of 'pyvenv' command.
-        default: pyvenv
-
-  requirements:
-    description: Save the installed packages into a requirements.txt file.
-    steps: venv/bin/pip freeze > requirements.txt
-    after:
-      - venv
+      - pipenv install
+      - pipenv run pip install --quiet -e .
 
   test:
     steps:
-      - venv/bin/coverage run --source=mo setup.py test
-      - venv/bin/coverage html
+      - pipenv run coverage run --source=mo setup.py test
+      - pipenv run coverage html
     after:
       - venv
 
   docs:
     steps:
-      - venv/bin/python setup.py build_sphinx
+      - pipenv run python setup.py build_sphinx
     after:
       - venv
