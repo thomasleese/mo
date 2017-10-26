@@ -67,12 +67,17 @@ def CommandOutputEvent(pipe, output):
     return make_event('CommandOutput', pipe=pipe, output=output)
 
 
+def CommandFailedEvent(exit_code):
+    return make_event('CommandFailedEvent', code=exit_code)
+
+
 def RunningCommandEvent(command):
     return make_event('RunningCommand', command=command)
 
 
 def TaskNotFoundEvent(name, similarities):
     return make_event('TaskNotFound', name=name, similarities=similarities)
+
 
 class Runner:
     """A runner takes a project and some variables and runs it."""
@@ -168,7 +173,7 @@ class Runner:
                 yield CommandOutputEvent('stderr', line)
 
         if process.returncode != 0:
-            yield CommandFailed(process.returncode)
+            yield CommandFailedEvent(process.returncode)
             raise StopTask
 
     def run_help_step(self, task, step, variables):

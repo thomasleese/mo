@@ -70,6 +70,11 @@ class Human(Frontend):
             text_style = Style.DIM
             if event.args['pipe'] == 'stderr':
                 text_style += Fore.RED
+        elif event.name == 'CommandFailedEvent':
+            character = '!'
+            character_style = Fore.RED + Style.BRIGHT
+            text = 'Command failed!'
+            text_style = Fore.RED
         elif event.name == 'UndefinedVariableError':
             character = '!'
             character_style = Fore.RED + Style.BRIGHT
