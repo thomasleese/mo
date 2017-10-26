@@ -93,8 +93,17 @@ class Human(Frontend):
             for line in event.args['output'].splitlines():
                 print('', line)
             return
-        else:
+        elif event.name == 'FindingTask':
             return
+        elif event.name == 'StartingTask':
+            return
+        elif event.name == 'RunningStep':
+            return
+        else:
+            character = '?'
+            character_style = Fore.YELLOW + Style.BRIGHT
+            text = f'Unknown event: {event}'
+            text_style = Fore.YELLOW
 
         print(' {}{}{} {}{}{}'.format(
             character_style, character, Style.RESET_ALL,
