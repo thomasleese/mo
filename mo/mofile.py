@@ -31,7 +31,7 @@ def _load_autodetect(data):
 
 
 def load(filename, format=None):
-    """Load a M-O task file and get a ``Project`` back."""
+    """Load a task file and get a ``Project`` back."""
 
     path = Path(filename).resolve()
 
