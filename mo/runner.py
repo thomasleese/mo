@@ -60,6 +60,24 @@ class Runner:
 
         return values
 
+    def run_task_steps(self, task):
+        for step in task.steps:
+            yield events.running_step(step)
+
+            try:
+                variables = self.resolve_variables(task)
+            except LookupError as e:
+                yield events.undefined_variable_error(e.args[0])
+                raise StopTask
+
+            try:
+                step_function = getattr(steps, step.type)
+            except AttributeError:
+                yield events.unknown_step_type_error(step)
+                raise StopTask
+            else:
+                yield from step_function(self.project, task, step, variables)
+
     def run_task(self, name):
         """Run a task."""
 
@@ -82,22 +100,5 @@ class Runner:
             self.tasks_run.append(name)
 
             yield events.running_task(task)
-
-            for step in task.steps:
-                yield events.running_step(step)
-
-                try:
-                    variables = self.resolve_variables(task)
-                except LookupError as e:
-                    yield events.undefined_variable_error(e.args[0])
-                    raise StopTask
-
-                try:
-                    step_function = getattr(steps, step.type)
-                except AttributeError:
-                    yield events.unknown_step_type_error(step)
-                    raise StopTask
-                else:
-                    yield from step_function(self.project, task, step, variables)
-
+            yield from self.run_task_steps(task)
             yield events.finished_task(task)

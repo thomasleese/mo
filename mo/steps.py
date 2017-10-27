@@ -9,41 +9,44 @@ class StopTask(StopIteration):
 
 
 def command(project, task, step, variables):
-    command = step.args.format(**variables)
+    args = step.args.format(**variables)
 
-    yield events.running_command(command)
+    yield events.running_command(args)
 
-    process = subprocess.Popen(command, shell=True,
-                               universal_newlines=True, bufsize=1,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    process = subprocess.Popen(
+        args, shell=True, universal_newlines=True, bufsize=1,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+
+    streams = ['stdout', 'stderr']
+
+    def send_line(stream, line):
+        line = line.strip()
+        if line:
+            yield events.command_output(stream, line)
+
+    def flush_line(fd, stream):
+        if fd == getattr(process, stream).fileno():
+            line = getattr(process, stream).readline()
+            yield from send_line(stream, line)
 
     while True:
-        reads = [process.stdout.fileno(), process.stderr.fileno()]
+        reads = [getattr(process, stream).fileno() for stream in streams]
         ret = select.select(reads, [], [])
 
         for fd in ret[0]:
-            if fd == process.stdout.fileno():
-                line = process.stdout.readline().strip()
-                if line:
-                    yield events.command_output('stdout', line)
-            if fd == process.stderr.fileno():
-                line = process.stderr.readline().strip()
-                if line:
-                    yield events.command_output('stderr', line)
+            for stream in streams:
+                flush_line(fd, streams)
 
         if process.poll() != None:
             break
 
-    for line in process.stdout.readlines():
-        line = line.strip()
-        if line:
-            yield events.command_output('stdout', line)
+    def flush_remaining_lines(stream):
+        for line in getattr(process, stream).readlines():
+            yield from send_line(stream, line)
 
-    for line in process.stderr.readlines():
-        line = line.strip()
-        if line:
-            yield events.command_output('stderr', line)
+    for stream in streams:
+        yield from flush_remaining_lines(stream)
 
     if process.returncode != 0:
         yield events.command_failed(process.returncode)
