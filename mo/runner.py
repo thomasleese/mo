@@ -2,7 +2,7 @@ from collections import namedtuple
 import select
 import subprocess
 
-from .events import *
+from . import events
 from .project import NoSuchTaskError, Step
 
 
@@ -29,7 +29,7 @@ class Runner:
     def help(self):
         """Run a help event."""
 
-        yield HelpEvent(self.project)
+        yield events.help(self.project)
 
     def queue_task(self, name):
         """Queue a task for execution."""
@@ -69,7 +69,7 @@ class Runner:
 
         command = step.args.format(**variables)
 
-        yield RunningCommandEvent(command)
+        yield events.running_command(command)
 
         process = subprocess.Popen(command, shell=True,
                                    universal_newlines=True, bufsize=1,
@@ -84,11 +84,11 @@ class Runner:
                 if fd == process.stdout.fileno():
                     line = process.stdout.readline().strip()
                     if line:
-                        yield CommandOutputEvent('stdout', line)
+                        yield events.command_output('stdout', line)
                 if fd == process.stderr.fileno():
                     line = process.stderr.readline().strip()
                     if line:
-                        yield CommandOutputEvent('stderr', line)
+                        yield events.command_output('stderr', line)
 
             if process.poll() != None:
                 break
@@ -96,15 +96,15 @@ class Runner:
         for line in process.stdout.readlines():
             line = line.strip()
             if line:
-                yield CommandOutputEvent('stdout', line)
+                yield events.command_output('stdout', line)
 
         for line in process.stderr.readlines():
             line = line.strip()
             if line:
-                yield CommandOutputEvent('stderr', line)
+                yield events.command_output('stderr', line)
 
         if process.returncode != 0:
-            yield CommandFailedEvent(process.returncode)
+            yield events.command_failed(process.returncode)
             raise StopTask
 
     def run_help_step(self, task, step, variables):
@@ -115,7 +115,7 @@ class Runner:
         try:
             task = self.project.find_task(task_name)
         except NoSuchTaskError as e:
-            yield TaskNotFoundEvent(task_name, e.similarities)
+            yield events.task_not_found(task_name, e.similarities)
             raise StopTask
 
         text = '# {}\n'.format(task.name)
@@ -125,37 +125,38 @@ class Runner:
         text += 'Variables: {}' \
             .format(', '.join(task.variables))
 
-        yield HelpStepOutputEvent(text)
+        yield events.help_step_output(text)
 
     def run_task(self, name):
         """Run a task."""
 
         if name in self.tasks_run:
-            yield SkippingTaskEvent(name)
+            yield events.skipping_task(name)
         else:
-            yield FindingTaskEvent(name)
+            yield events.finding_task(name)
+
             try:
                 task = self.find_task(name)
             except NoSuchTaskError as e:
-                yield TaskNotFoundEvent(name, e.similarities)
+                yield events.task_not_found(name, e.similarities)
                 raise StopTask
 
-            yield StartingTaskEvent(task)
+            yield events.starting_task(task)
 
             for name in task.dependencies:
                 yield from self.run_task(name)
 
             self.tasks_run.append(name)
 
-            yield RunningTaskEvent(task)
+            yield events.running_task(task)
 
             for step in task.steps:
-                yield RunningStepEvent(step)
+                yield events.running_step(step)
 
                 try:
                     variables = self.resolve_variables(task)
                 except LookupError as e:
-                    yield UndefinedVariableErrorEvent(e.args[0])
+                    yield events.undefined_variable_error(e.args[0])
                     raise StopTask
 
                 if step.type == 'help':
@@ -163,7 +164,7 @@ class Runner:
                 elif step.type == 'command':
                     yield from self.run_command_step(task, step, variables)
                 else:
-                    yield UnknownStepTypeErrorEvent(step)
+                    yield events.unknown_step_type_error(step)
                     raise StopTask
 
-            yield FinishedTaskEvent(task)
+            yield events.finished_task(task)

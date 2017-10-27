@@ -1,12 +1,10 @@
-from enum import Enum
 import json
-import sys
 
 import colorama
 from colorama import Fore, Style
 
+from .events import Event
 from .project import Step, StepCollection, Task, Variable, VariableCollection
-from .runner import Event
 
 
 class Frontend:
@@ -38,6 +36,10 @@ class Human(Frontend):
     to read.
     """
 
+    ignored_events = (
+        'FindingTask', 'StartingTask', 'RunningStep', 'FinishedTask'
+    )
+
     def begin(self):
         colorama.init()
         print()
@@ -47,6 +49,9 @@ class Human(Frontend):
 
     def output(self, event):
         character_style = Fore.BLUE + Style.BRIGHT
+
+        if event.name in self.ignored_events:
+            return
 
         if event.name == 'RunningTask':
             character = 'λ'
@@ -92,12 +97,6 @@ class Human(Frontend):
             print()
             for line in event.args['output'].splitlines():
                 print('', line)
-            return
-        elif event.name == 'FindingTask':
-            return
-        elif event.name == 'StartingTask':
-            return
-        elif event.name == 'RunningStep':
             return
         else:
             character = '?'

@@ -1,71 +1,66 @@
+"""Contains all the events that may come from steps."""
+
 from collections import namedtuple
 
 
 Event = namedtuple('Event', ['name', 'args'])
 
 
-def make_event(event, **kwargs):
-    """A convenience function to make an Event."""
-
-    return Event(event, kwargs)
+def resolving_task_variables(variables):
+    return Event('ResolvingTaskVariables', {'variables': variables})
 
 
-# all the events are definied here
-def ResolvingTaskVariablesEvent(variables):
-    return make_event('ResolvingTaskVariables', variables=variables)
+def undefined_variable_error(variable):
+    return Event('UndefinedVariableError', {'variable': variable})
 
 
-def UndefinedVariableErrorEvent(variable):
-    return make_event('UndefinedVariableError', variable=variable)
+def unknown_step_type_error(step):
+    return Event('UnknownStepTypeError', {'step': step})
 
 
-def UnknownStepTypeErrorEvent(step):
-    return make_event('UnknownStepTypeError', step=step)
+def finding_task(name):
+    return Event('FindingTask', {'name': name})
 
 
-def FindingTaskEvent(name):
-    return make_event('FindingTask', name=name)
+def starting_task(task):
+    return Event('StartingTask', {'task': task})
 
 
-def StartingTaskEvent(task):
-    return make_event('StartingTask', task=task)
+def running_task(task):
+    return Event('RunningTask', {'task': task})
 
 
-def RunningTaskEvent(task):
-    return make_event('RunningTask', task=task)
+def skipping_task(name):
+    return Event('SkippingTask', {'name': name})
 
 
-def SkippingTaskEvent(name):
-    return make_event('SkippingTask', name=name)
+def running_step(step):
+    return Event('RunningStep', {'step': step})
 
 
-def RunningStepEvent(step):
-    return make_event('RunningStep', step=step)
+def finished_task(task):
+    return Event('FinishedTask', {'task': task})
 
 
-def FinishedTaskEvent(task):
-    return make_event('FinishedTask', task=task)
+def help(project):
+    return Event('Help', {'project': project})
 
 
-def HelpEvent(project):
-    return make_event('Help', project=project)
+def help_step_output(output):
+    return Event('HelpStepOutput', {'output': output})
 
 
-def HelpStepOutputEvent(output):
-    return make_event('HelpStepOutput', output=output)
+def command_output(pipe, output):
+    return Event('CommandOutput', {'pipe': pipe, 'output': output})
 
 
-def CommandOutputEvent(pipe, output):
-    return make_event('CommandOutput', pipe=pipe, output=output)
+def command_failed(exit_code):
+    return Event('CommandFailedEvent', {'code': exit_code})
 
 
-def CommandFailedEvent(exit_code):
-    return make_event('CommandFailedEvent', code=exit_code)
+def running_command(command):
+    return Event('RunningCommand', {'command': command})
 
 
-def RunningCommandEvent(command):
-    return make_event('RunningCommand', command=command)
-
-
-def TaskNotFoundEvent(name, similarities):
-    return make_event('TaskNotFound', name=name, similarities=similarities)
+def task_not_found(name, similarities):
+    return Event('TaskNotFound', {'name': name, 'similarities': similarities})
