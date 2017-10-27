@@ -42,9 +42,34 @@ class Human(Frontend):
         'FindingTask', 'StartingTask', 'RunningStep', 'FinishedTask'
     )
 
-    event_characters = {
+    characters = {
         'RunningTask': 'λ',
         'SkippingTask': 'λ',
+        'RunningCommand': '>',
+        'CommandOutput': ' ',
+        'CommandFailedEvent': '!',
+        'InvalidMofile': '!',
+        'UndefinedVariableError': '!',
+        'TaskNotFound': '!',
+    }
+
+    character_styles = {
+        'SkippingTask': Fore.YELLOW,
+        'CommandFailedEvent': Fore.RED,
+        'InvalidMofile': Fore.RED,
+        'UndefinedVariableError': Fore.RED,
+        'TaskNotFound': Fore.RED,
+    }
+
+    text_styles = {
+        'RunningTask': Style.BRIGHT,
+        'SkippingTask': Style.DIM,
+        'RunningCommand': Style.BRIGHT,
+        'CommandOutput': Style.DIM,
+        'CommandFailedEvent': Style.BRIGHT + Fore.RED,
+        'InvalidMofile': Style.BRIGHT + Fore.RED,
+        'UndefinedVariableError': Style.BRIGHT + Fore.RED,
+        'TaskNotFound': Style.BRIGHT + Fore.RED,
     }
 
     def begin(self):
@@ -55,54 +80,41 @@ class Human(Frontend):
         print()
 
     def output(self, event):
-        character_style = Fore.BLUE + Style.BRIGHT
+        character_style = Fore.BLUE
 
         if event.name in self.ignored_events:
             return
 
-        if event.name in self.event_characters:
-            character = self.event_characters[event.name]
+        if event.name in self.characters:
+            character = self.characters[event.name]
+
+        if event.name in self.character_styles:
+            character_style = self.character_styles[event.name]
+
+        if event.name in self.text_styles:
+            text_style = self.text_styles[event.name]
 
         if event.name == 'RunningTask':
             text = f'Running task: {Style.NORMAL}{event.args["task"].name}'
-            text_style = Style.BRIGHT
         elif event.name == 'SkippingTask':
-            character_style = Fore.YELLOW + Style.BRIGHT
             text = f'Skipping task: {Style.NORMAL}{event.args["name"]}'
-            text_style = Style.DIM
         elif event.name == 'RunningCommand':
-            character = '>'
             text = f'Executing: {Style.NORMAL}{event.args["command"]}'
-            text_style = Style.BRIGHT
         elif event.name == 'CommandOutput':
-            character = ' '
             text = event.args['output']
-            text_style = Style.DIM
             if event.args['pipe'] == 'stderr':
                 text_style += Fore.RED
         elif event.name == 'CommandFailedEvent':
-            character = '!'
-            character_style = Fore.RED + Style.BRIGHT
-            text = 'Command failed!'
-            text_style = Fore.RED
+            text = f'Command failed with exit code {event.args["code"]}'
         elif event.name == 'InvalidMofile':
-            character = '!'
-            character_style = Fore.RED + Style.BRIGHT
-            text = f'Invalid task file: {event.args["filename"]}'
-            text_style = Fore.RED
+            text = f'Invalid task file: {Style.NORMAL}{event.args["filename"]}'
         elif event.name == 'UndefinedVariableError':
-            character = '!'
-            character_style = Fore.RED + Style.BRIGHT
-            text = f'Undefined variable: {event.args["variable"]}'
-            text_style = Fore.RED
+            text = f'Undefined variable: {Style.NORMAL}{event.args["variable"]}'
         elif event.name == 'TaskNotFound':
-            character = '!'
-            character_style = Fore.RED + Style.BRIGHT
-            text = f'No such task: {event.args["name"]}'
+            text = f'No such task: {Style.NORMAL}{event.args["name"]}'
             if event.args['similarities']:
-                text += ' Did you mean? {}' \
-                    .format(', '.join(event.args['similarities']))
-            text_style = Fore.RED
+                similarities_str = ', '.join(event.args['similarities'])
+                text += f' Did you mean? {similarities_str}'
         elif event.name == 'HelpStepOutput':
             print()
             for line in event.args['output'].splitlines():
@@ -117,13 +129,15 @@ class Human(Frontend):
         else:
             character = '?'
             character_style = Fore.YELLOW + Style.BRIGHT
-            text = f'Unknown event: {event}'
+            text = f'Unknown event: {Style.NORMAL}{event}'
             text_style = Fore.YELLOW
 
-        print(' {}{}{} {}{}{}'.format(
-            character_style, character, Style.RESET_ALL,
-            text_style, text, Style.RESET_ALL
-        ))
+        character_style += Style.BRIGHT
+
+        print(
+            f' {character_style}{character}{Style.RESET_ALL}' +
+            f' {text_style}{text}{Style.RESET_ALL}'
+        )
 
 
 class SerialisingFrontend(Frontend):
