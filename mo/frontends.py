@@ -115,7 +115,8 @@ class Human(Frontend):
                 text_style += Fore.RED
         elif event.name == 'CommandFailedEvent':
             text = f'Command failed with exit code {event.args["code"]}'
-            text += f'{Style.NORMAL}\n{self.indent(event.args["description"], 3)}'
+            if event.args['description']:
+                text += f'{Style.NORMAL}\n{self.indent(event.args["description"], 3)}'
         elif event.name == 'InvalidMofile':
             text = f'Invalid task file: {Style.NORMAL}{event.args["filename"]}'
         elif event.name == 'UndefinedVariableError':
