@@ -1,6 +1,7 @@
 """Contains all the steps available."""
 
 import select
+import shlex
 import subprocess
 
 from . import events
@@ -11,12 +12,13 @@ class StopTask(StopIteration):
 
 
 def command(project, task, step, variables):
-    args = step.args.format(**variables)
+    command_line = step.args.format(**variables)
+    command_args = shlex.split(command_line)
 
-    yield events.running_command(args)
+    yield events.running_command(command_args)
 
     process = subprocess.Popen(
-        args, shell=True, universal_newlines=True, bufsize=1,
+        command_args, shell=True, universal_newlines=True, bufsize=1,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
 
@@ -51,7 +53,7 @@ def command(project, task, step, variables):
         yield from flush_remaining_lines(stream)
 
     if process.returncode != 0:
-        yield events.command_failed(process.returncode)
+        yield events.command_failed(command_args, process.returncode)
         raise StopTask
 
 

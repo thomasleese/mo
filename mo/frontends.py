@@ -72,6 +72,14 @@ class Human(Frontend):
         'TaskNotFound': Style.BRIGHT + Fore.RED,
     }
 
+    def indent(self, string, n=1):
+        new_lines = []
+
+        for line in string.splitlines():
+            new_lines.append(' ' * n + line)
+
+        return '\n'.join(new_lines)
+
     def begin(self):
         colorama.init()
         print()
@@ -99,13 +107,15 @@ class Human(Frontend):
         elif event.name == 'SkippingTask':
             text = f'Skipping task: {Style.NORMAL}{event.args["name"]}'
         elif event.name == 'RunningCommand':
-            text = f'Executing: {Style.NORMAL}{event.args["command"]}'
+
+            text = f'Executing: {Style.NORMAL}{" ".join(event.args["command"])}'
         elif event.name == 'CommandOutput':
             text = event.args['output']
             if event.args['pipe'] == 'stderr':
                 text_style += Fore.RED
         elif event.name == 'CommandFailedEvent':
             text = f'Command failed with exit code {event.args["code"]}'
+            text += f'{Style.NORMAL}\n{self.indent(event.args["description"], 3)}'
         elif event.name == 'InvalidMofile':
             text = f'Invalid task file: {Style.NORMAL}{event.args["filename"]}'
         elif event.name == 'UndefinedVariableError':

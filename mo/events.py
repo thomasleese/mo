@@ -58,8 +58,17 @@ def command_output(pipe, output):
     return Event('CommandOutput', {'pipe': pipe, 'output': output})
 
 
-def command_failed(exit_code):
-    return Event('CommandFailedEvent', {'code': exit_code})
+def command_failed(command, exit_code):
+    common_descriptions = {
+        1: f'Details on how the command failed should be available above.',
+        127: f'The command cannot be found.\nPerhaps installing {command[0]} would help.'
+    }
+
+    return Event('CommandFailedEvent', {
+        'command': command,
+        'code': exit_code,
+        'description': common_descriptions.get(exit_code),
+    })
 
 
 def running_command(command):
