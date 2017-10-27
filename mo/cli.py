@@ -2,9 +2,15 @@
 
 from argparse import ArgumentParser
 
-from . import mofile
-from .frontends import MAPPINGS as FRONTEND_MAPPINGS
+from . import frontends, mofile
 from .runner import Runner
+
+
+available_frontends = {
+    'human': frontends.Human,
+    'debug': frontends.Debug,
+    'json': frontends.Json
+}
 
 
 def parse_variables(args):
@@ -37,7 +43,7 @@ def parse_args():
     parser.add_argument('-f', '--file', default='Mofile')
     parser.add_argument('-v', '--var', dest='variables', nargs='*')
     parser.add_argument('--frontend', default='human',
-                        choices=FRONTEND_MAPPINGS.keys())
+                        choices=available_frontends.keys())
     parser.add_argument('tasks', metavar='task', nargs='*')
     return parser.parse_args()
 
@@ -63,7 +69,7 @@ def main():
 
     args = parse_args()
 
-    frontend = FRONTEND_MAPPINGS[args.frontend]()
+    frontend = available_frontends[args.frontend]()
 
     frontend.begin()
 

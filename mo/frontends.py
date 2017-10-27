@@ -156,10 +156,3 @@ class Json(SerialisingFrontend):
 
     def output(self, event):
         print(json.dumps(self.serialise(event)))
-
-
-MAPPINGS = {
-    'human': Human,
-    'debug': Debug,
-    'json': Json
-}
