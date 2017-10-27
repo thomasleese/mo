@@ -3,7 +3,7 @@
 from argparse import ArgumentParser
 
 from . import mofile
-from .frontend import MAPPINGS as FRONTEND_MAPPINGS
+from .frontends import MAPPINGS as FRONTEND_MAPPINGS
 from .runner import Runner
 
 
