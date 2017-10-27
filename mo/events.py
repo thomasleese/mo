@@ -43,7 +43,7 @@ def finished_task(task):
 
 
 def help(project):
-    return Event('Help', {'project': project})
+    return Event('Help', {'tasks': project.tasks})
 
 
 def help_step_output(output):

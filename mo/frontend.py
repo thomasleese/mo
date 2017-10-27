@@ -95,6 +95,12 @@ class Human(Frontend):
             for line in event.args['output'].splitlines():
                 print('', line)
             return
+        elif event.name == 'Help':
+            print('Available tasks:')
+            print()
+            for name, task in event.args['tasks'].items():
+                print(name, '-', task.description)
+            return
         else:
             character = '?'
             character_style = Fore.YELLOW + Style.BRIGHT
