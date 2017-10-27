@@ -42,6 +42,11 @@ class Human(Frontend):
         'FindingTask', 'StartingTask', 'RunningStep', 'FinishedTask'
     )
 
+    event_characters = {
+        'RunningTask': 'λ',
+        'SkippingTask': 'λ',
+    }
+
     def begin(self):
         colorama.init()
         print()
@@ -55,12 +60,13 @@ class Human(Frontend):
         if event.name in self.ignored_events:
             return
 
+        if event.name in self.event_characters:
+            character = self.event_characters[event.name]
+
         if event.name == 'RunningTask':
-            character = 'λ'
             text = f'Running task: {Style.NORMAL}{event.args["task"].name}'
             text_style = Style.BRIGHT
         elif event.name == 'SkippingTask':
-            character = 'λ'
             character_style = Fore.YELLOW + Style.BRIGHT
             text = f'Skipping task: {Style.NORMAL}{event.args["name"]}'
             text_style = Style.DIM
@@ -78,6 +84,11 @@ class Human(Frontend):
             character = '!'
             character_style = Fore.RED + Style.BRIGHT
             text = 'Command failed!'
+            text_style = Fore.RED
+        elif event.name == 'InvalidMofile':
+            character = '!'
+            character_style = Fore.RED + Style.BRIGHT
+            text = f'Invalid task file: {event.args["filename"]}'
             text_style = Fore.RED
         elif event.name == 'UndefinedVariableError':
             character = '!'

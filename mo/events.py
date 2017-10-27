@@ -6,6 +6,10 @@ from collections import namedtuple
 Event = namedtuple('Event', ['name', 'args'])
 
 
+def invalid_mofile(filename):
+    return Event('InvalidMofile', {'filename': filename})
+
+
 def resolving_task_variables(variables):
     return Event('ResolvingTaskVariables', {'variables': variables})
 

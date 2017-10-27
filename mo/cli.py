@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser
 
-from . import frontends, mofile
+from . import events, frontends, mofile
 from .runner import Runner
 
 
@@ -49,7 +49,14 @@ def parse_args():
 
 
 def run(args):
-    project = mofile.load(args.file)
+    try:
+        project = mofile.load(args.file)
+    except FileNotFoundError:
+        yield events.invalid_mofile(args.file)
+        return
+    except mofile.InvalidMofileFormat:
+        yield events.invalid_mofile(args.file)
+        return
 
     variables = parse_variables(args.variables)
 
