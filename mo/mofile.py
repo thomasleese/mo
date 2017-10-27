@@ -30,7 +30,7 @@ def _load_autodetect(data):
         raise InvalidMofileFormat('Cannot detect file format.')
 
 
-def load(filename, format=None):
+def load(filename: str, format: str = None):
     """Load a task file and get a ``Project`` back."""
 
     path = Path(filename).resolve()
