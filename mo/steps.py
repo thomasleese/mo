@@ -1,3 +1,5 @@
+"""Contains all the steps available."""
+
 import select
 import subprocess
 

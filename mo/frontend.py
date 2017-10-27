@@ -1,3 +1,5 @@
+"""Contains all the frontends available."""
+
 import json
 
 import colorama

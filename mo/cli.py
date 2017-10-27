@@ -1,5 +1,6 @@
+"""Utilities for working with the command line interface."""
+
 from argparse import ArgumentParser
-import sys
 
 from . import mofile
 from .frontend import MAPPINGS as FRONTEND_MAPPINGS

@@ -1,3 +1,5 @@
+"""Contains the runner class."""
+
 from . import events, steps
 from .project import NoSuchTaskError, Step
 
