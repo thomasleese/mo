@@ -16,16 +16,19 @@ def parse_variables(args):
         Mapping variable name to the value.
     """
 
-    variables = {}
+    if args is None:
+        return {}
 
-    if args is not None:
-        for variable in args:
-            tokens = variable.split('=')
-            name = tokens[0]
-            value = '='.join(tokens[1:])
-            variables[name] = value
+    def parse_variable(string):
+        tokens = string.split('=')
+        name = tokens[0]
+        value = '='.join(tokens[1:])
+        return name, value
 
-    return variables
+    return {
+        name: value
+        for name, value in (parse_variable(v) for v in args)
+    }
 
 
 def parse_args():
