@@ -1,6 +1,5 @@
 tasks:
-  venv:
-    description: Create an approriate Python virtual environment.
+  bootstrap:
     steps:
       - pipenv install
       - pipenv run pip install --quiet -e .
@@ -10,13 +9,21 @@ tasks:
       - pipenv run coverage run --source=mo setup.py test
       - pipenv run coverage html
     after:
-      - venv
+      - bootstrap
 
   docs:
     steps:
       - pipenv run python setup.py build_sphinx
     after:
-      - venv
+      - bootstrap
+
+  release:
+    steps:
+      - pipenv run python setup.py bdist_wheel
+      - pipenv run twine upload dist/*
+      - echo Now make a git tag and update the version.
+    after:
+      - bootstrap
 
   something:
     description: Do something.

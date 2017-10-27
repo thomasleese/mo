@@ -14,7 +14,7 @@ setup(
     url='https://github.com/thomasleese/mo',
     author='Thomas Leese',
     author_email='thomas@leese.io',
-    packages=find_packages(),
+    packages=find_packages(exclude=['docs', 'tests']),
     entry_points={
         'console_scripts': ['mo = mo.cli:main']
     },
@@ -37,4 +37,5 @@ setup(
         'Topic :: Software Development :: Build Tools',
         'Topic :: Utilities'
     ],
+    license='MIT',
 )
