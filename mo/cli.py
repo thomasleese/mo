@@ -28,17 +28,17 @@ def parse_variables(args):
     return variables
 
 
-def main():
-    """Run the CLI."""
-
+def parse_args():
     parser = ArgumentParser()
     parser.add_argument('-f', '--file', default='Mofile')
     parser.add_argument('-v', '--var', dest='variables', nargs='*')
     parser.add_argument('--frontend', default='human',
                         choices=FRONTEND_MAPPINGS.keys())
     parser.add_argument('tasks', metavar='task', nargs='*')
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+def run(args):
     project = mofile.load(args.file)
 
     variables = parse_variables(args.variables)
@@ -49,15 +49,22 @@ def main():
         for task in args.tasks:
             runner.queue_task(task)
 
-        func = runner.run
+        yield from runner.run()
     else:
-        func = runner.help
+        yield from runner.help()
+
+
+def main():
+    """Run the CLI."""
+
+    args = parse_args()
 
     frontend = FRONTEND_MAPPINGS[args.frontend]()
 
     frontend.begin()
 
-    for event in func():
-        frontend.output(event)
-
-    frontend.end()
+    try:
+        for event in run(args):
+            frontend.output(event)
+    finally:
+        frontend.end()
