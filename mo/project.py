@@ -13,15 +13,15 @@ class InvalidProjectError(ValueError):
 class InvalidVariableError(InvalidProjectError):
     """A variable is invalid."""
 
-    def __init__(self, name, message):
-        super().__init__('{} {}'.format(name, message))
+    def __init__(self, name: str, message: str):
+        super().__init__(f'{name} {message}')
 
 
 class InvalidTaskError(InvalidProjectError):
     """A task is invalid."""
 
-    def __init__(self, name, message):
-        super().__init__('{} {}'.format(name, message))
+    def __init__(self, name: str, message: str):
+        super().__init__(f'{name} {message}')
 
 
 class InvalidStepError(InvalidProjectError):
@@ -49,7 +49,7 @@ _Variable = namedtuple('_Variable', ['name', 'description', 'default'])
 
 class Variable(_Variable):
     def __str__(self):
-        return '{} ({})'.format(self.name, self.description)
+        return f'{self.name} ({self.description})'
 
 
 Task = namedtuple('Task', ['name', 'description', 'variables', 'steps',

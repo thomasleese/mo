@@ -55,19 +55,16 @@ class Human(Frontend):
 
         if event.name == 'RunningTask':
             character = 'λ'
-            text = 'Running task: {}{}'.format(Style.NORMAL,
-                                               event.args['task'].name)
+            text = f'Running task: {Style.NORMAL}{event.args["task"].name}'
             text_style = Style.BRIGHT
         elif event.name == 'SkippingTask':
             character = 'λ'
             character_style = Fore.YELLOW + Style.BRIGHT
-            text = 'Skipping task: {}{}'.format(Style.NORMAL,
-                                                event.args['name'])
+            text = f'Skipping task: {Style.NORMAL}{event.args["name"]}'
             text_style = Style.DIM
         elif event.name == 'RunningCommand':
             character = '>'
-            text = 'Executing: {}{}'.format(Style.NORMAL,
-                                            event.args['command'])
+            text = f'Executing: {Style.NORMAL}{event.args["command"]}'
             text_style = Style.BRIGHT
         elif event.name == 'CommandOutput':
             character = ' '
@@ -83,12 +80,12 @@ class Human(Frontend):
         elif event.name == 'UndefinedVariableError':
             character = '!'
             character_style = Fore.RED + Style.BRIGHT
-            text = 'Undefined variable: {}'.format(event.args['variable'])
+            text = f'Undefined variable: {event.args["variable"]}'
             text_style = Fore.RED
         elif event.name == 'TaskNotFound':
             character = '!'
             character_style = Fore.RED + Style.BRIGHT
-            text = 'No such task: {}'.format(event.args['name'])
+            text = f'No such task: {event.args["name"]}'
             if event.args['similarities']:
                 text += ' Did you mean? {}' \
                     .format(', '.join(event.args['similarities']))

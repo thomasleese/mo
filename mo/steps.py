@@ -61,11 +61,10 @@ def help(project, task, step, variables):
         yield events.task_not_found(task_name, e.similarities)
         raise StopTask
 
-    text = '# {}\n'.format(task.name)
+    text = f'# {task.name}\n'
     text += '\n'
     text += task.description
     text += '\n\n'
-    text += 'Variables: {}' \
-        .format(', '.join(task.variables))
+    text += 'Variables: {}'.format(', '.join(task.variables))
 
     yield events.help_step_output(text)
