@@ -11,8 +11,7 @@ class StopTask(StopIteration):
     pass
 
 
-def command(project, task, step, variables):
-    command_line = step.args.format(**variables)
+def _run_command(command_line):
     command_args = shlex.split(command_line)
 
     yield events.running_command(command_args)
@@ -57,6 +56,11 @@ def command(project, task, step, variables):
         raise StopTask
 
 
+def command(project, task, step, variables):
+    command_line = step.args.format(**variables)
+    yield from _run_command(command_line)
+
+
 def help(project, task, step, variables):
     """Run a help step."""
 
@@ -75,3 +79,15 @@ def help(project, task, step, variables):
     text += 'Variables: {}'.format(', '.join(task.variables))
 
     yield events.help_step_output(text)
+
+
+def brew(project, task, step, variables):
+    package = step.args
+
+    exit_code = subprocess.call(['brew', 'ls', '--versions', package],
+                                stdout=subprocess.PIPE)
+
+    if exit_code == 0:
+        return
+
+    yield from _run_command(f'brew install {package}')
