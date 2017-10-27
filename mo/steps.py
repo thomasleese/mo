@@ -18,7 +18,7 @@ def command(project, task, step, variables):
     yield events.running_command(command_args)
 
     process = subprocess.Popen(
-        command_args, shell=True, universal_newlines=True, bufsize=1,
+        command_line, shell=True, universal_newlines=True, bufsize=1,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
 
