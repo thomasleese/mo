@@ -32,9 +32,7 @@ def step(func=None, name=None):
 
 
 def _run_command(command_line):
-    command_args = shlex.split(command_line)
-
-    yield events.running_command(command_args)
+    yield events.running_command(command_line)
 
     process = subprocess.Popen(
         command_line, shell=True, universal_newlines=True, bufsize=1,
@@ -71,8 +69,20 @@ def _run_command(command_line):
     for stream in streams:
         yield from flush_remaining_lines(stream)
 
-    if process.returncode != 0:
-        yield events.command_failed(command_args, process.returncode)
+    exit_code = process.returncode
+
+    if exit_code != 0:
+        command_args = shlex.split(command_line)
+
+        common_descriptions = {
+            1: f'Details on how the command failed should be available above.',
+            127: f'The command cannot be found.\nPerhaps installing {command_args[0]} would help.'
+        }
+
+        description = common_descriptions.get(exit_code)
+
+        yield events.command_failed(command_line, exit_code, description)
+
         raise StopTask
 
 
@@ -100,7 +110,7 @@ def help(project, task, step, variables):
     text += '\n\n'
     text += 'Variables: {}'.format(', '.join(task.variables))
 
-    yield events.help_step_output(text)
+    yield events.help_output(text)
 
 
 @step

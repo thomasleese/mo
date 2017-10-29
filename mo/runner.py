@@ -71,13 +71,13 @@ class Runner:
             try:
                 variables = self.resolve_variables(task)
             except LookupError as e:
-                yield events.undefined_variable_error(e.args[0])
+                yield events.undefined_variable(e.args[0])
                 raise StopTask
 
             try:
                 step_function = registered_steps[step.type]
             except KeyError:
-                yield events.unknown_step_type_error(step)
+                yield events.unknown_step_type(step)
                 raise StopTask
             else:
                 yield from step_function(self.project, task, step, variables)

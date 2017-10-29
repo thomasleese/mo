@@ -47,17 +47,17 @@ class Human(Frontend):
         'SkippingTask': 'λ',
         'RunningCommand': '>',
         'CommandOutput': ' ',
-        'CommandFailedEvent': '!',
+        'CommandFailed': '!',
         'InvalidMofile': '!',
-        'UndefinedVariableError': '!',
+        'UndefinedVariable': '!',
         'TaskNotFound': '!',
     }
 
     character_styles = {
         'SkippingTask': Fore.YELLOW,
-        'CommandFailedEvent': Fore.RED,
+        'CommandFailed': Fore.RED,
         'InvalidMofile': Fore.RED,
-        'UndefinedVariableError': Fore.RED,
+        'UndefinedVariable': Fore.RED,
         'TaskNotFound': Fore.RED,
     }
 
@@ -66,9 +66,9 @@ class Human(Frontend):
         'SkippingTask': Style.DIM,
         'RunningCommand': Style.BRIGHT,
         'CommandOutput': Style.DIM,
-        'CommandFailedEvent': Style.BRIGHT + Fore.RED,
+        'CommandFailed': Style.BRIGHT + Fore.RED,
         'InvalidMofile': Style.BRIGHT + Fore.RED,
-        'UndefinedVariableError': Style.BRIGHT + Fore.RED,
+        'UndefinedVariable': Style.BRIGHT + Fore.RED,
         'TaskNotFound': Style.BRIGHT + Fore.RED,
     }
 
@@ -108,25 +108,25 @@ class Human(Frontend):
             text = f'Skipping task: {Style.NORMAL}{event.args["name"]}'
         elif event.name == 'RunningCommand':
 
-            text = f'Executing: {Style.NORMAL}{" ".join(event.args["command"])}'
+            text = f'Executing: {Style.NORMAL}{event.args["command"]}'
         elif event.name == 'CommandOutput':
             text = event.args['output']
             if event.args['pipe'] == 'stderr':
                 text_style += Fore.RED
-        elif event.name == 'CommandFailedEvent':
+        elif event.name == 'CommandFailed':
             text = f'Command failed with exit code {event.args["code"]}'
             if event.args['description']:
                 text += f'{Style.NORMAL}\n{self.indent(event.args["description"], 3)}'
         elif event.name == 'InvalidMofile':
             text = f'Invalid task file: {Style.NORMAL}{event.args["filename"]}'
-        elif event.name == 'UndefinedVariableError':
+        elif event.name == 'UndefinedVariable':
             text = f'Undefined variable: {Style.NORMAL}{event.args["variable"]}'
         elif event.name == 'TaskNotFound':
             text = f'No such task: {Style.NORMAL}{event.args["name"]}'
             if event.args['similarities']:
                 similarities_str = ', '.join(event.args['similarities'])
                 text += f' Did you mean? {similarities_str}'
-        elif event.name == 'HelpStepOutput':
+        elif event.name == 'HelpOutput':
             print()
             for line in event.args['output'].splitlines():
                 print('', line)
