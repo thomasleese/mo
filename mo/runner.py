@@ -73,8 +73,8 @@ class Runner:
                 raise StopTask
 
             try:
-                step_function = getattr(steps, step.type)
-            except AttributeError:
+                step_function = steps.available_steps[step.type]
+            except KeyError:
                 yield events.unknown_step_type_error(step)
                 raise StopTask
             else:

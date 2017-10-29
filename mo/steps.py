@@ -11,6 +11,26 @@ class StopTask(StopIteration):
     pass
 
 
+available_steps = {}
+
+
+def step(func=None, name=None):
+    def decorator(func):
+        nonlocal name
+
+        if name is None:
+            name = func.__name__
+
+        available_steps[name] = func
+
+        return func
+
+    if func is None:
+        return decorator
+    else:
+        return decorator(func)
+
+
 def _run_command(command_line):
     command_args = shlex.split(command_line)
 
@@ -56,11 +76,13 @@ def _run_command(command_line):
         raise StopTask
 
 
+@step
 def command(project, task, step, variables):
     command_line = step.args.format(**variables)
     yield from _run_command(command_line)
 
 
+@step
 def help(project, task, step, variables):
     """Run a help step."""
 
@@ -81,6 +103,7 @@ def help(project, task, step, variables):
     yield events.help_step_output(text)
 
 
+@step
 def brew(project, task, step, variables):
     package = step.args
 
@@ -91,3 +114,8 @@ def brew(project, task, step, variables):
         return
 
     yield from _run_command(f'brew install {package}')
+
+
+@step(name='print')
+def print_step(project, task, step, variables):
+    yield events.command_output('stdout', step.args)
