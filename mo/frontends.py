@@ -42,22 +42,6 @@ class Human(Frontend):
         'FindingTask', 'StartingTask', 'RunningStep', 'FinishedTask'
     )
 
-    characters = {
-        'RunningTask': 'λ',
-        'SkippingTask': 'λ',
-        'RunningCommand': '>',
-    }
-
-    character_styles = {
-        'SkippingTask': Fore.YELLOW,
-    }
-
-    text_styles = {
-        'RunningTask': Style.BRIGHT,
-        'SkippingTask': Style.DIM,
-        'RunningCommand': Style.BRIGHT,
-    }
-
     def indent(self, string, n=1):
         new_lines = []
 
@@ -74,28 +58,31 @@ class Human(Frontend):
         print()
 
     def get_character(self, event):
-        if event.name in self.characters:
-            return self.characters[event.name]
-
         if event.kind is EventKind.output:
             return ' '
         elif event.kind is EventKind.error:
             return '!'
+        elif 'Task' in event.name:
+            return 'λ'
+        elif 'Command' in event.name:
+            return '>'
 
     def get_character_style(self, event):
-        if event.name in self.character_styles:
-            return self.character_styles[event.name]
-
-        if event.kind is EventKind.error:
+        if event.name == 'SkippingTask':
+            return Fore.YELLOW
+        elif event.kind is EventKind.error:
             return Fore.RED
 
         return Fore.BLUE
 
     def get_text_style(self, event):
-        if event.name in self.text_styles:
-            return self.text_styles[event.name]
-
-        if event.kind is EventKind.output:
+        if event.name == 'RunningTask':
+            return Style.BRIGHT
+        elif event.name == 'SkippingTask':
+            return Style.DIM
+        elif event.name == 'RunningCommand':
+            return Style.BRIGHT
+        elif event.kind is EventKind.output:
             return Style.DIM
         elif event.kind is EventKind.error:
             return Style.BRIGHT + Fore.RED

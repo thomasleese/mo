@@ -5,7 +5,7 @@ from enum import Enum
 
 
 class EventKind(Enum):
-    unknown = 'unknown'
+    other = 'other'
     error = 'error'
     output = 'output'
 
@@ -30,27 +30,27 @@ def unknown_step_type(step):
 
 
 def finding_task(name):
-    return Event('FindingTask', EventKind.unknown, {'name': name})
+    return Event('FindingTask', EventKind.other, {'name': name})
 
 
 def starting_task(task):
-    return Event('StartingTask', EventKind.unknown, {'task': task})
+    return Event('StartingTask', EventKind.other, {'task': task})
 
 
 def running_task(task):
-    return Event('RunningTask', EventKind.unknown, {'task': task})
+    return Event('RunningTask', EventKind.other, {'task': task})
 
 
 def skipping_task(name):
-    return Event('SkippingTask', EventKind.unknown, {'name': name})
+    return Event('SkippingTask', EventKind.other, {'name': name})
 
 
 def running_step(step):
-    return Event('RunningStep', EventKind.unknown, {'step': step})
+    return Event('RunningStep', EventKind.other, {'step': step})
 
 
 def finished_task(task):
-    return Event('FinishedTask', EventKind.unknown, {'task': task})
+    return Event('FinishedTask', EventKind.other, {'task': task})
 
 
 def help(project):
@@ -74,7 +74,7 @@ def command_failed(command, code, description):
 
 
 def running_command(command):
-    return Event('RunningCommand', EventKind.unknown, {'command': command})
+    return Event('RunningCommand', EventKind.other, {'command': command})
 
 
 def task_not_found(name, similarities):
