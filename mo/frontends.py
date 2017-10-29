@@ -5,7 +5,7 @@ import json
 import colorama
 from colorama import Fore, Style
 
-from .events import Event
+from .events import Event, EventKind
 from .project import Step, StepCollection, Task, Variable, VariableCollection
 
 
@@ -47,18 +47,10 @@ class Human(Frontend):
         'SkippingTask': 'λ',
         'RunningCommand': '>',
         'CommandOutput': ' ',
-        'CommandFailed': '!',
-        'InvalidMofile': '!',
-        'UndefinedVariable': '!',
-        'TaskNotFound': '!',
     }
 
     character_styles = {
         'SkippingTask': Fore.YELLOW,
-        'CommandFailed': Fore.RED,
-        'InvalidMofile': Fore.RED,
-        'UndefinedVariable': Fore.RED,
-        'TaskNotFound': Fore.RED,
     }
 
     text_styles = {
@@ -87,17 +79,28 @@ class Human(Frontend):
     def end(self):
         print()
 
-    def output(self, event):
-        character_style = Fore.BLUE
+    def get_character(self, event):
+        if event.name in self.characters:
+            return self.characters[event.name]
 
+        if event.kind is EventKind.error:
+            return '!'
+
+    def get_character_style(self, event):
+        if event.name in self.character_styles:
+            return self.character_styles[event.name]
+
+        if event.kind is EventKind.error:
+            return Fore.RED
+
+        return Fore.BLUE
+
+    def output(self, event):
         if event.name in self.ignored_events:
             return
 
-        if event.name in self.characters:
-            character = self.characters[event.name]
-
-        if event.name in self.character_styles:
-            character_style = self.character_styles[event.name]
+        character_style = self.get_character_style(event)
+        character = self.get_character(event)
 
         if event.name in self.text_styles:
             text_style = self.text_styles[event.name]
@@ -139,7 +142,7 @@ class Human(Frontend):
             return
         else:
             character = '?'
-            character_style = Fore.YELLOW + Style.BRIGHT
+            character_style = Fore.YELLOW
             text = f'Unknown event: {Style.NORMAL}{event}'
             text_style = Fore.YELLOW
 

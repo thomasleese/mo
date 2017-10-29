@@ -6,25 +6,26 @@ from enum import Enum
 
 class EventKind(Enum):
     unknown = 'unknown'
+    error = 'error'
 
 
 Event = namedtuple('Event', ['name', 'kind', 'args'])
 
 
 def invalid_mofile(filename):
-    return Event('InvalidMofile', EventKind.unknown, {
+    return Event('InvalidMofile', EventKind.error, {
         'filename': filename
     })
 
 
 def undefined_variable(variable):
-    return Event('UndefinedVariable', EventKind.unknown, {
+    return Event('UndefinedVariable', EventKind.error, {
         'variable': variable
     })
 
 
 def unknown_step_type(step):
-    return Event('UnknownStepType', EventKind.unknown, {'step': step})
+    return Event('UnknownStepType', EventKind.error, {'step': step})
 
 
 def finding_task(name):
@@ -66,7 +67,7 @@ def command_output(pipe, output):
 
 
 def command_failed(command, code, description):
-    return Event('CommandFailed', EventKind.unknown, {
+    return Event('CommandFailed', EventKind.error, {
         'command': command, 'code': code, 'description': description,
     })
 
@@ -76,6 +77,6 @@ def running_command(command):
 
 
 def task_not_found(name, similarities):
-    return Event('TaskNotFound', EventKind.unknown, {
+    return Event('TaskNotFound', EventKind.error, {
         'name': name, 'similarities': similarities
     })
