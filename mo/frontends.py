@@ -46,7 +46,6 @@ class Human(Frontend):
         'RunningTask': 'λ',
         'SkippingTask': 'λ',
         'RunningCommand': '>',
-        'CommandOutput': ' ',
     }
 
     character_styles = {
@@ -57,11 +56,6 @@ class Human(Frontend):
         'RunningTask': Style.BRIGHT,
         'SkippingTask': Style.DIM,
         'RunningCommand': Style.BRIGHT,
-        'CommandOutput': Style.DIM,
-        'CommandFailed': Style.BRIGHT + Fore.RED,
-        'InvalidMofile': Style.BRIGHT + Fore.RED,
-        'UndefinedVariable': Style.BRIGHT + Fore.RED,
-        'TaskNotFound': Style.BRIGHT + Fore.RED,
     }
 
     def indent(self, string, n=1):
@@ -83,7 +77,9 @@ class Human(Frontend):
         if event.name in self.characters:
             return self.characters[event.name]
 
-        if event.kind is EventKind.error:
+        if event.kind is EventKind.output:
+            return ' '
+        elif event.kind is EventKind.error:
             return '!'
 
     def get_character_style(self, event):
@@ -95,22 +91,28 @@ class Human(Frontend):
 
         return Fore.BLUE
 
+    def get_text_style(self, event):
+        if event.name in self.text_styles:
+            return self.text_styles[event.name]
+
+        if event.kind is EventKind.output:
+            return Style.DIM
+        elif event.kind is EventKind.error:
+            return Style.BRIGHT + Fore.RED
+
     def output(self, event):
         if event.name in self.ignored_events:
             return
 
         character_style = self.get_character_style(event)
         character = self.get_character(event)
-
-        if event.name in self.text_styles:
-            text_style = self.text_styles[event.name]
+        text_style = self.get_text_style(event)
 
         if event.name == 'RunningTask':
             text = f'Running task: {Style.NORMAL}{event.args["task"].name}'
         elif event.name == 'SkippingTask':
             text = f'Skipping task: {Style.NORMAL}{event.args["name"]}'
         elif event.name == 'RunningCommand':
-
             text = f'Executing: {Style.NORMAL}{event.args["command"]}'
         elif event.name == 'CommandOutput':
             text = event.args['output']

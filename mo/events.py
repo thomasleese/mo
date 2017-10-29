@@ -7,6 +7,7 @@ from enum import Enum
 class EventKind(Enum):
     unknown = 'unknown'
     error = 'error'
+    output = 'output'
 
 
 Event = namedtuple('Event', ['name', 'kind', 'args'])
@@ -53,15 +54,15 @@ def finished_task(task):
 
 
 def help(project):
-    return Event('Help', EventKind.unknown, {'tasks': project.tasks})
+    return Event('Help', EventKind.output, {'tasks': project.tasks})
 
 
 def help_output(output):
-    return Event('HelpOutput', EventKind.unknown, {'output': output})
+    return Event('HelpOutput', EventKind.output, {'output': output})
 
 
 def command_output(pipe, output):
-    return Event('CommandOutput', EventKind.unknown, {
+    return Event('CommandOutput', EventKind.output, {
         'pipe': pipe, 'output': output
     })
 
