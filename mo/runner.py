@@ -1,7 +1,9 @@
 """Contains the runner class."""
 
-from . import events, steps
+from . import events
 from .project import NoSuchTaskError, Step
+from .steps import registered_steps
+
 
 
 class StopTask(StopIteration):
@@ -73,7 +75,7 @@ class Runner:
                 raise StopTask
 
             try:
-                step_function = steps.available_steps[step.type]
+                step_function = registered_steps[step.type]
             except KeyError:
                 yield events.unknown_step_type_error(step)
                 raise StopTask

@@ -11,7 +11,7 @@ class StopTask(StopIteration):
     pass
 
 
-available_steps = {}
+registered_steps = {}
 
 
 def step(func=None, name=None):
@@ -21,7 +21,7 @@ def step(func=None, name=None):
         if name is None:
             name = func.__name__
 
-        available_steps[name] = func
+        registered_steps[name] = func
 
         return func
 
